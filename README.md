@@ -14,6 +14,11 @@ Live: https://aizen-sasuke.github.io/cymatics-lab/
 - Frequency sweep, curated mode presets, and a "find something interesting" search
 - Field and node overlays, learn panel, and a live readout
 
+## Legacy versions
+
+The earlier "Cymatics - Live Chladni Patterns" builds are archived unmodified in
+[`legacy/`](legacy/) for reference. They are not the live site.
+
 ## Running locally
 
 No build step and no dependencies. Open `index.html` in a browser, or serve it:

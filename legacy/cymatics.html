@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cymatics — Live Chladni Patterns</title>
+<style>
+  :root {
+    --bg: #05070a;
+    --panel-bg: rgba(10, 14, 20, 0.72);
+    --text: #cfe3ea;
+    --text-dim: #6b8390;
+    --accent: #8fd6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at 50% 40%, #0a1018 0%, #05070a 75%);
+    overflow: hidden;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+  canvas { display: block; touch-action: none; }
+
+  #versionTag {
+    position: fixed; top: 12px; right: 16px;
+    color: var(--text-dim); font-size: 10px; letter-spacing: 0.03em;
+    z-index: 5; pointer-events: none;
+  }
+
+  #hud {
+    position: fixed; top: 16px; left: 16px;
+    color: var(--text); background: var(--panel-bg);
+    border: 1px solid rgba(143, 214, 255, 0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px; line-height: 1.8;
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+    min-width: 200px;
+    z-index: 6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  #meterTrack {
+    margin-top: 8px; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.08); overflow: hidden;
+  }
+  #meterFill {
+    height: 100%; width: 0%; background: var(--accent);
+    transition: width 60ms linear;
+  }
+  #hud .row { display: flex; justify-content: space-between; gap: 16px; }
+  #hud .label { color: var(--text-dim); }
+  #hud .value { color: var(--accent); font-weight: 600; }
+
+  #controls {
+    position: fixed; bottom: 16px; left: 16px;
+    color: var(--text); background: var(--panel-bg);
+    border: 1px solid rgba(143, 214, 255, 0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 11px;
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #controls input[type="range"] { width: 120px; accent-color: var(--accent); }
+  #controls .label { color: var(--text-dim); }
+  #controls select {
+    font-family: inherit; font-size: 11px; color: var(--text);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(143,214,255,0.2);
+    border-radius: 5px; padding: 3px 6px;
+  }
+  .ghostSmall {
+    font-family: inherit; font-size: 11px; color: var(--text-dim);
+    background: transparent; border: 1px solid rgba(143,214,255,0.2);
+    border-radius: 5px; padding: 3px 10px; cursor: pointer;
+  }
+  .ghostSmall:hover { color: var(--accent); border-color: var(--accent); }
+
+  #presetRow, #circlePresetRow {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(143, 214, 255, 0.12);
+  }
+  .presetBtn {
+    font-family: inherit; font-size: 10.5px; color: var(--text-dim);
+    background: rgba(143, 214, 255, 0.06);
+    border: 1px solid rgba(143, 214, 255, 0.18);
+    border-radius: 6px; padding: 5px 8px; cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .presetBtn:hover {
+    color: var(--accent); border-color: var(--accent);
+    background: rgba(143, 214, 255, 0.14);
+    transform: translateY(-1px);
+  }
+
+  #tonePanel {
+    position: fixed; top: 16px; right: 16px;
+    color: var(--text); background: var(--panel-bg);
+    border: 1px solid rgba(143, 214, 255, 0.25);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 12px; width: 240px; backdrop-filter: blur(6px); z-index: 6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  #tonePanel .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #tonePanel label { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text-dim); }
+  #tonePanel input[type="radio"] { accent-color: var(--accent); }
+  #toneFreqSlider, #toneVolSlider { accent-color: var(--accent); }
+
+  #startOverlay {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, #0a1018 0%, #05070a 70%);
+    z-index: 10;
+  }
+  #startCard { text-align: center; color: var(--text); max-width: 360px; padding: 0 24px; }
+  #startCard h1 {
+    font-size: 15px; font-weight: 600; letter-spacing: 0.02em;
+    margin: 0 0 8px; color: var(--accent);
+    text-shadow: 0 0 20px rgba(143, 214, 255, 0.4);
+  }
+  #startCard p {
+    font-size: 12px; color: var(--text-dim); line-height: 1.6; margin: 0 0 20px;
+  }
+  #startBtn, .srcBtn {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: #05070a; background: var(--accent);
+    border: none; border-radius: 8px;
+    padding: 11px 22px; cursor: pointer;
+  }
+  #sourceButtons { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .srcBtn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(143,214,255,0.25); }
+  .srcBtn { transition: all 0.15s ease; }
+  .srcBtn.ghost {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid rgba(143, 214, 255, 0.2); font-weight: 500;
+  }
+  .srcBtn.ghost:hover { box-shadow: none; }
+  #errorMsg {
+    display: none; margin-top: 16px; font-size: 11px;
+    color: #ff9d8f; line-height: 1.6; text-align: left;
+    background: rgba(255, 157, 143, 0.08); border: 1px solid rgba(255, 157, 143, 0.25);
+    border-radius: 8px; padding: 10px 12px;
+  }
+</style>
+</head>
+<body>
+
+<div id="versionTag">v2.0</div>
+<canvas id="canvas"></canvas>
+
+<div id="hud">
+  <div class="row"><span class="label">freq</span><span class="value" id="freqVal">—</span></div>
+  <div class="row"><span class="label">mode (m,n)</span><span class="value" id="modeVal">—</span></div>
+  <div class="row"><span class="label">amplitude</span><span class="value" id="ampVal">—</span></div>
+  <div id="meterTrack"><div id="meterFill"></div></div>
+</div>
+
+<div id="controls" style="flex-wrap:wrap; max-width: min(94vw, 900px);">
+  <span class="label">shape</span>
+  <select id="shapeSelect">
+    <option value="square">square</option>
+    <option value="circle">circle</option>
+  </select>
+  <span style="width:1px;height:16px;background:rgba(143,214,255,0.15)"></span>
+  <span class="label">particles</span>
+  <input type="range" id="particleSlider" min="2000" max="45000" step="1000" value="24000">
+  <span class="label value" id="particleVal" style="color:var(--accent);min-width:34px;">24000</span>
+  <span style="width:1px;height:16px;background:rgba(143,214,255,0.15)"></span>
+  <span class="label">pitch → pattern scale</span>
+  <input type="range" id="sensSlider" min="20" max="300" value="90">
+  <span style="width:1px;height:16px;background:rgba(143,214,255,0.15)"></span>
+  <label class="label" style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+    <input type="checkbox" id="manualToggle" style="accent-color:var(--accent);"> manual
+  </label>
+  <span class="label">m</span><input type="range" id="mSlider" min="1" max="9" value="3">
+  <span class="label">n</span><input type="range" id="nSlider" min="1" max="9" value="2">
+  <span class="label">energy</span><input type="range" id="jitterSlider" min="0" max="100" value="25">
+  <span style="width:1px;height:16px;background:rgba(143,214,255,0.15)"></span>
+  <span class="label">start</span>
+  <select id="startStyleSelect">
+    <option value="scattered">scattered</option>
+    <option value="center">from center</option>
+  </select>
+  <button id="resetBtn" class="ghostSmall">reset</button>
+  <span id="mixWrap" style="display:flex;align-items:center;gap:10px;">
+    <span style="width:1px;height:16px;background:rgba(143,214,255,0.15)"></span>
+    <span class="label">mix</span>
+    <input type="range" id="mixSlider" min="-100" max="100" value="100">
+  </span>
+</div>
+
+<div id="startOverlay">
+  <div id="startCard">
+    <h1>CYMATICS</h1>
+    <p>Thousands of particles settle into the real nodal-line pattern of your dominant pitch — same math as sand on a Chladni plate. Square or circular plate, particle count adjustable once you're in.</p>
+    <div id="sourceButtons">
+      <button class="srcBtn primary" id="micBtn">Microphone</button>
+      <button class="srcBtn" id="fileBtn">Load audio file</button>
+      <button class="srcBtn" id="tabBtn">Capture tab / system audio</button>
+      <button class="srcBtn" id="toneBtn">Generate a tone</button>
+      <button class="srcBtn ghost" id="manualBtn">Skip — explore without audio</button>
+    </div>
+    <input type="file" id="fileInput" accept="audio/*" style="display:none">
+    <div id="errorMsg"></div>
+  </div>
+</div>
+
+<div id="tonePanel" style="display:none;">
+  <div class="row"><span class="label">frequency</span><span class="value" id="toneFreqVal">440 Hz</span></div>
+  <input type="range" id="toneFreqSlider" min="30" max="1500" value="440" style="width:100%;">
+  <div class="row" style="margin-top:8px;">
+    <label><input type="radio" name="wave" value="sine" checked> sine</label>
+    <label><input type="radio" name="wave" value="square"> square</label>
+    <label><input type="radio" name="wave" value="sawtooth"> saw</label>
+    <label><input type="radio" name="wave" value="triangle"> tri</label>
+  </div>
+  <div class="row" style="margin-top:8px;">
+    <button id="tonePlayBtn" class="ghostSmall">Play</button>
+    <input type="range" id="toneVolSlider" min="0" max="100" value="40" style="width:80px;">
+  </div>
+  <div id="presetRow">
+    <button class="presetBtn" data-freq="201">201 Hz — Cross</button>
+    <button class="presetBtn" data-freq="325">325 Hz — Woven Bands</button>
+    <button class="presetBtn" data-freq="371">371 Hz — Diamond Grid</button>
+    <button class="presetBtn" data-freq="450">450 Hz — Symmetric Grid</button>
+    <button class="presetBtn" data-freq="576">576 Hz — Fine Lattice</button>
+    <button class="presetBtn" data-freq="703">703 Hz — Intricate Web</button>
+  </div>
+  <div id="circlePresetRow" style="display:none;">
+    <button class="presetBtn" data-freq="345">345 Hz — Two Petals</button>
+    <button class="presetBtn" data-freq="497">497 Hz — Double Ring</button>
+    <button class="presetBtn" data-freq="574">574 Hz — Six Petals</button>
+    <button class="presetBtn" data-freq="758">758 Hz — Flower Grid</button>
+    <button class="presetBtn" data-freq="789">789 Hz — Ten Petals</button>
+    <button class="presetBtn" data-freq="1061">1061 Hz — Concentric Rings</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const startOverlay = document.getElementById('startOverlay');
+  const micBtn = document.getElementById('micBtn');
+  const fileBtn = document.getElementById('fileBtn');
+  const tabBtn = document.getElementById('tabBtn');
+  const manualBtn = document.getElementById('manualBtn');
+  const toneBtn = document.getElementById('toneBtn');
+  const tonePanel = document.getElementById('tonePanel');
+  const toneFreqSlider = document.getElementById('toneFreqSlider');
+  const toneFreqVal = document.getElementById('toneFreqVal');
+  const toneVolSlider = document.getElementById('toneVolSlider');
+  const tonePlayBtn = document.getElementById('tonePlayBtn');
+  const startStyleSelect = document.getElementById('startStyleSelect');
+  const resetBtn = document.getElementById('resetBtn');
+  const fileInput = document.getElementById('fileInput');
+  const errorMsg = document.getElementById('errorMsg');
+  const freqVal = document.getElementById('freqVal');
+  const modeVal = document.getElementById('modeVal');
+  const ampVal = document.getElementById('ampVal');
+  const sensSlider = document.getElementById('sensSlider');
+  const manualToggle = document.getElementById('manualToggle');
+  const mSlider = document.getElementById('mSlider');
+  const nSlider = document.getElementById('nSlider');
+  const jitterSlider = document.getElementById('jitterSlider');
+  const shapeSelect = document.getElementById('shapeSelect');
+  const mixWrap = document.getElementById('mixWrap');
+  const presetRow = document.getElementById('presetRow');
+  const circlePresetRow = document.getElementById('circlePresetRow');
+  const particleSlider = document.getElementById('particleSlider');
+  const particleVal = document.getElementById('particleVal');
+
+  let shape = 'square'; // 'square' | 'circle'
+
+  // --- SQUARE plate: closed-form Chladni mode table -----------------------
+  // U(x,y) = cos(m*pi*x)*cos(n*pi*y) - cos(n*pi*x)*cos(m*pi*y)
+  // Classic closed-form solution for a square plate's standing-wave shapes.
+  // Particles settle where U ≈ 0 (the nodal lines), same as real sand.
+  const modes = [];
+  for (let m = 1; m <= 9; m++) {
+    for (let n = 1; n <= 9; n++) {
+      if (m === n) continue; // degenerate: U is identically zero
+      modes.push({ m, n, k: Math.sqrt(m * m + n * n) });
+    }
+  }
+  modes.sort((a, b) => a.k - b.k);
+
+  function closestMode(targetK, modeList) {
+    let best = modeList[0], bestDist = Infinity;
+    for (const mo of modeList) {
+      const d = Math.abs(mo.k - targetK);
+      if (d < bestDist) { bestDist = d; best = mo; }
+    }
+    return best;
+  }
+
+  // Analytic field + gradient for square mode (m, n) at (x01, y01) in [0,1]
+  let mixK = 1; // -1 = pure symmetric, 1 = pure antisymmetric (forces the diagonal node)
+  function squareFieldRaw(m, n, x, y) {
+    const ax = Math.PI * x, ay = Math.PI * y;
+    const U = Math.cos(m * ax) * Math.cos(n * ay) - mixK * Math.cos(n * ax) * Math.cos(m * ay);
+    const dUdx = -m * Math.PI * Math.sin(m * ax) * Math.cos(n * ay)
+               +  mixK * n * Math.PI * Math.sin(n * ax) * Math.cos(m * ay);
+    const dUdy = -n * Math.PI * Math.cos(m * ax) * Math.sin(n * ay)
+               +  mixK * m * Math.PI * Math.cos(n * ax) * Math.sin(m * ay);
+    return [U, dUdx, dUdy];
+  }
+  // Wrapper that works in the centered [-1,1] coordinates the sim actually uses
+  function squareField(m, n, x, y) {
+    const raw = squareFieldRaw(m, n, (x + 1) * 0.5, (y + 1) * 0.5);
+    return [raw[0], raw[1] * 0.5, raw[2] * 0.5];
+  }
+
+  // --- CIRCLE plate: real membrane/Bessel-function modes ------------------
+  // U(r,θ) = J_m(β_mn · r) · cos(mθ), where β_mn is the n-th positive zero
+  // of the Bessel function J_m. m = number of nodal diameters (petals/2),
+  // n = number of nodal circles. Real physics for a circular drum/plate —
+  // this is why the patterns come out as rings, petals and mandalas instead
+  // of the square's grids.
+  //
+  // J_m(x) is computed via Miller's downward-recurrence algorithm, which is
+  // numerically stable for integer order (unlike the raw power series).
+  function besselJArray(x, mMax) {
+    if (x === 0) {
+      const out = new Float64Array(mMax + 1);
+      out[0] = 1;
+      return out;
+    }
+    const start = mMax + Math.ceil(Math.abs(x)) + 15;
+    const vals = new Float64Array(start + 1);
+    let jkp1 = 0, jk = 1;
+    vals[start] = jk;
+    for (let k = start; k >= 1; k--) {
+      const jkm1 = (2 * k / x) * jk - jkp1;
+      vals[k - 1] = jkm1;
+      jkp1 = jk;
+      jk = jkm1;
+    }
+    let sum = vals[0];
+    for (let k = 2; k <= start; k += 2) sum += 2 * vals[k];
+    const out = new Float64Array(mMax + 1);
+    for (let m = 0; m <= mMax; m++) out[m] = vals[m] / sum;
+    return out;
+  }
+  function besselJ(m, x) { return besselJArray(x, m)[m]; }
+
+  // Find the first `count` positive zeros of J_m via scan + bisection.
+  function findBesselZeros(m, count) {
+    const zeros = [];
+    let prevX = 0.8, prev = besselJ(m, prevX);
+    const step = 0.05;
+    for (let x = prevX + step; zeros.length < count && x < 60; x += step) {
+      const val = besselJ(m, x);
+      if ((prev < 0 && val >= 0) || (prev > 0 && val <= 0)) {
+        let lo = prevX, hi = x, flo = prev;
+        for (let iter = 0; iter < 40; iter++) {
+          const mid = (lo + hi) / 2;
+          const fmid = besselJ(m, mid);
+          if ((flo < 0) === (fmid < 0)) { lo = mid; flo = fmid; } else { hi = mid; }
+        }
+        zeros.push((lo + hi) / 2);
+      }
+      prev = val; prevX = x;
+    }
+    return zeros;
+  }
+
+  const circleModes = [];
+  const circleZeroTable = {}; // circleZeroTable[m][n] -> beta_mn
+  for (let m = 0; m <= 6; m++) {
+    circleZeroTable[m] = {};
+    findBesselZeros(m, 6).forEach((z, idx) => {
+      circleZeroTable[m][idx + 1] = z;
+      circleModes.push({ m, n: idx + 1, k: z });
+    });
+  }
+  circleModes.sort((a, b) => a.k - b.k);
+
+  // Per-frame lookup table (radial profile of J_m(β·r) and its r-derivative)
+  // avoids running the Bessel recurrence per-particle — built once per
+  // frame from the current mode instead.
+  const TABLE_N = 400;
+  let circleTableM = -1, circleTableK = -1;
+  let JM_TABLE = new Float32Array(TABLE_N + 1);
+  let DJM_TABLE = new Float32Array(TABLE_N + 1);
+  function buildCircleTable(m, k) {
+    if (m === circleTableM && Math.abs(k - circleTableK) < 1e-6) return;
+    circleTableM = m; circleTableK = k;
+    const mMax = m + 1;
+    for (let i = 0; i <= TABLE_N; i++) {
+      const r = i / TABLE_N;
+      const arr = besselJArray(k * r, mMax);
+      const Jm = arr[m];
+      const JmMinus1 = m >= 1 ? arr[m - 1] : -arr[1]; // identity: J_{-1}(x) = -J_1(x)
+      const JmPlus1 = arr[m + 1];
+      JM_TABLE[i] = Jm;
+      DJM_TABLE[i] = k * 0.5 * (JmMinus1 - JmPlus1); // d/dr[J_m(k·r)] = k·J_m'(k·r)
+    }
+  }
+  function circleField(m, x, y) {
+    const r = Math.sqrt(x * x + y * y);
+    const rc = Math.min(r, 1);
+    const fi = rc * TABLE_N;
+    const i0 = Math.min(TABLE_N - 1, Math.floor(fi));
+    const t = fi - i0;
+    const Jm = JM_TABLE[i0] * (1 - t) + JM_TABLE[i0 + 1] * t;
+    const dJmdr = DJM_TABLE[i0] * (1 - t) + DJM_TABLE[i0 + 1] * t;
+    const theta = Math.atan2(y, x);
+    const cosT = Math.cos(m * theta), sinT = Math.sin(m * theta);
+    const U = Jm * cosT;
+    const dUdr = dJmdr * cosT;
+    const dUdtheta = -m * Jm * sinT;
+    const rr = Math.max(r, 1e-4);
+    const dUdx = dUdr * (x / rr) - dUdtheta * (y / (rr * rr));
+    const dUdy = dUdr * (y / rr) + dUdtheta * (x / (rr * rr));
+    return [U, dUdx, dUdy];
+  }
+
+  // --- Particles -----------------------------------------------------------
+  let PARTICLE_COUNT = 24000;
+  let px, py, vx, vy;
+
+  let startStyle = 'scattered';
+  function initParticles() {
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      if (startStyle === 'center') {
+        const r = Math.random() * 0.02; // tight cluster, spreads out as it settles
+        const theta = Math.random() * Math.PI * 2;
+        px[i] = Math.cos(theta) * r;
+        py[i] = Math.sin(theta) * r;
+      } else if (shape === 'circle') {
+        const r = Math.sqrt(Math.random()); // uniform over disk area
+        const theta = Math.random() * Math.PI * 2;
+        px[i] = Math.cos(theta) * r;
+        py[i] = Math.sin(theta) * r;
+      } else {
+        px[i] = Math.random() * 2 - 1;
+        py[i] = Math.random() * 2 - 1;
+      }
+      vx[i] = 0; vy[i] = 0;
+    }
+  }
+  function allocateParticles(n) {
+    PARTICLE_COUNT = n;
+    px = new Float32Array(n);
+    py = new Float32Array(n);
+    vx = new Float32Array(n);
+    vy = new Float32Array(n);
+    initParticles();
+  }
+  allocateParticles(PARTICLE_COUNT);
+
+  let currentMode = { m: 3, n: 2 };
+  let currentAmp = 0; // 0..1, smoothed overall loudness -> drives jitter energy
+
+  // --- Canvas / layout -------------------------------------------------------
+  let W, H, side, offX, offY;
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    side = Math.min(W, H) * 0.86;
+    offX = (W - side) / 2; offY = (H - side) / 2;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // --- Audio -----------------------------------------------------------------
+  let analyser, dataArray, timeData, sampleRate;
+
+  // Autocorrelation pitch detection — far more accurate on real-world
+  // (noisy, harmonic-rich) signals than picking the loudest FFT bin.
+  // Standard technique: correlate the waveform against shifted copies of
+  // itself; the lag with the strongest self-similarity is the pitch period.
+  function autocorrelate(buf, sr) {
+    const SIZE = buf.length;
+    let maxAmp = 0;
+    for (let i = 0; i < SIZE; i++) {
+      const a = Math.abs(buf[i]);
+      if (a > maxAmp) maxAmp = a;
+    }
+    if (maxAmp < 0.006) return -1; // genuinely silent
+
+    // Trim near-silent head/tail — threshold is relative to THIS signal's
+    // own peak, not a fixed number, so quiet humming trims correctly too
+    let start = 0, end = SIZE - 1;
+    const thresh = maxAmp * 0.15;
+    while (start < SIZE / 2 && Math.abs(buf[start]) < thresh) start++;
+    while (end > SIZE / 2 && Math.abs(buf[end]) < thresh) end--;
+    const trimmed = buf.slice(start, end);
+    const n = trimmed.length;
+    if (n < 64) return -1;
+
+    const c = new Float32Array(n);
+    for (let lag = 0; lag < n; lag++) {
+      let sum = 0;
+      for (let i = 0; i < n - lag; i++) sum += trimmed[i] * trimmed[i + lag];
+      c[lag] = sum;
+    }
+
+    let d = 0;
+    while (d < n - 1 && c[d] > c[d + 1]) d++; // skip initial downslope
+    let maxVal = -1, maxPos = -1;
+    for (let i = d; i < n; i++) {
+      if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; }
+    }
+    if (maxPos <= 0) return -1;
+
+    // Parabolic interpolation around the peak for sub-sample precision
+    const x1 = c[maxPos - 1] || 0, x2 = c[maxPos], x3 = c[maxPos + 1] || 0;
+    const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+    const shift = a ? -b / (2 * a) : 0;
+    const period = maxPos + shift;
+
+    const freq = sr / period;
+    return (freq > 50 && freq < 2000) ? freq : -1; // plausible vocal/instrument range
+  }
+
+  let audioCtx, audioActive = false;
+
+  function setupAnalyser() {
+    sampleRate = audioCtx.sampleRate;
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.4;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Float32Array(analyser.fftSize);
+  }
+
+  function launch() {
+    audioActive = true;
+    startOverlay.style.display = 'none';
+    requestAnimationFrame(loop);
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+
+  async function startMic() {
+    try {
+      // Auto-gain boosts quiet input so humming/whistling actually registers.
+      // Noise suppression / echo cancellation stay off — those are tuned for
+      // phone calls and distort the signal we're trying to analyse.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true }
+      });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      setupAnalyser();
+      audioCtx.createMediaStreamSource(stream).connect(analyser); // never -> destination: no echo
+      launch();
+    } catch (err) {
+      showError("Couldn't reach the microphone (" + err.message + "). If this is running " +
+        "inside an embedded preview, try opening the page in its own browser tab.");
+    }
+  }
+
+  function startFile() { fileInput.click(); }
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    setupAnalyser();
+    const audioEl = new Audio(URL.createObjectURL(file));
+    audioEl.loop = true;
+    const src = audioCtx.createMediaElementSource(audioEl);
+    src.connect(analyser);
+    src.connect(audioCtx.destination); // a file should actually play out loud
+    audioEl.play();
+    launch();
+  });
+
+  async function startTabCapture() {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      stream.getVideoTracks().forEach(t => t.stop()); // only need the audio
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        showError('No audio track came through — when the picker opens, make sure to check "share audio" (or "share tab audio").');
+        return;
+      }
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      setupAnalyser();
+      audioCtx.createMediaStreamSource(new MediaStream(audioTracks)).connect(analyser);
+      launch();
+    } catch (err) {
+      showError("Couldn't capture audio (" + err.message + "). Desktop Chrome/Edge only — most mobile browsers don't support tab/system audio capture.");
+    }
+  }
+
+  micBtn.addEventListener('click', startMic);
+  fileBtn.addEventListener('click', startFile);
+  tabBtn.addEventListener('click', startTabCapture);
+  manualBtn.addEventListener('click', () => {
+    audioActive = false;
+    manualToggle.checked = true;
+    manualToggle.disabled = true;
+    launch();
+  });
+
+  // --- Tone generator: a clean synthetic signal, no mic/capture flakiness ---
+  let oscillator, toneGain;
+  function startTone() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    setupAnalyser();
+    oscillator = audioCtx.createOscillator();
+    toneGain = audioCtx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = +toneFreqSlider.value;
+    toneGain.gain.value = toneVolSlider.value / 250; // keep it from being ear-splitting
+    oscillator.connect(toneGain);
+    toneGain.connect(analyser);
+    toneGain.connect(audioCtx.destination);
+    oscillator.start();
+    tonePanel.style.display = 'block';
+    launch();
+  }
+  toneBtn.addEventListener('click', startTone);
+
+  toneFreqSlider.addEventListener('input', () => {
+    toneFreqVal.textContent = toneFreqSlider.value + ' Hz';
+    if (oscillator) oscillator.frequency.value = +toneFreqSlider.value;
+  });
+  toneVolSlider.addEventListener('input', () => {
+    if (toneGain) toneGain.gain.value = toneVolSlider.value / 250;
+  });
+  document.querySelectorAll('input[name="wave"]').forEach(r => {
+    r.addEventListener('change', () => { if (oscillator) oscillator.type = r.value; });
+  });
+  let tonePlaying = true;
+  tonePlayBtn.addEventListener('click', () => {
+    tonePlaying = !tonePlaying;
+    if (toneGain) toneGain.gain.value = tonePlaying ? toneVolSlider.value / 250 : 0;
+    tonePlayBtn.textContent = tonePlaying ? 'Play' : 'Muted';
+  });
+
+  // --- Particle start style ---------------------------------------------
+  startStyleSelect.addEventListener('change', () => {
+    startStyle = startStyleSelect.value;
+    initParticles();
+  });
+  resetBtn.addEventListener('click', initParticles);
+
+  const mixSlider = document.getElementById('mixSlider');
+  mixSlider.addEventListener('input', () => { mixK = +mixSlider.value / 100; });
+
+  // --- Pretuned presets ----------------------------------------------------
+  // Each preset's Hz was picked so that, at the fixed scale of 90, it lands
+  // exactly on a clean (m,n) mode — locking the scale is what guarantees
+  // the match, since the mapping is frequency ÷ scale.
+  document.querySelectorAll('.presetBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sensSlider.value = 90;
+      manualToggle.checked = false;
+      const f = +btn.dataset.freq;
+      toneFreqSlider.value = f;
+      toneFreqVal.textContent = f + ' Hz';
+      if (oscillator) {
+        oscillator.frequency.value = f;
+      } else {
+        startTone();
+        oscillator.frequency.value = f;
+      }
+      if (!tonePlaying) tonePlayBtn.click();
+    });
+  });
+
+  // Smoothed frequency estimate to stop the pattern flickering between modes
+  let smoothedFreq = 200;
+  let detectedMode = { m: 3, n: 2 };
+  let detectedAmp = 0;
+
+  function analyseAudio() {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+    const amp = Math.min(1, sum / (dataArray.length * 55));
+    detectedAmp += (amp - detectedAmp) * 0.15;
+
+    analyser.getFloatTimeDomainData(timeData);
+    const detected = autocorrelate(timeData, sampleRate);
+    if (detected > 0) {
+      // Snap fast on a genuine pitch change, don't lag behind real singing/humming
+      smoothedFreq += (detected - smoothedFreq) * 0.35;
+    }
+
+    const sensitivity = parseFloat(sensSlider.value);
+    const targetK = smoothedFreq / sensitivity;
+    detectedMode = closestMode(targetK);
+  }
+
+  // Decides each frame whether the field is driven by live audio or the
+  // manual sliders, and keeps the HUD readout honest about which is active.
+  let lastModeKey = '', stableFrames = 0;
+  function resolveState() {
+    if (audioActive) analyseAudio();
+    const manual = manualToggle.checked || !audioActive;
+    if (manual) {
+      let m = +mSlider.value, n = +nSlider.value;
+      if (m === n) n = (n % 9) + 1; // dodge the degenerate zero-field case
+      currentMode = { m, n };
+      currentAmp = +jitterSlider.value / 100;
+      freqVal.textContent = 'manual';
+    } else {
+      currentMode = detectedMode;
+      currentAmp = detectedAmp;
+      freqVal.textContent = Math.round(smoothedFreq) + ' Hz';
+    }
+    const key = currentMode.m + ',' + currentMode.n;
+    stableFrames = (key === lastModeKey) ? stableFrames + 1 : 0;
+    lastModeKey = key;
+    modeVal.textContent = `(${currentMode.m}, ${currentMode.n})`;
+    ampVal.textContent = Math.round(currentAmp * 100) + '%';
+    document.getElementById('meterFill').style.width = Math.round(currentAmp * 100) + '%';
+  }
+
+  // --- Simulation step ---------------------------------------------------
+  const FORCE = 2.2;
+  const DAMPING = 0.90;
+
+  function step() {
+    const { m, n } = currentMode;
+    const jitter = currentAmp * 0.0022; // louder sound -> more energetic bounce
+    // The longer the pattern's held, the harder particles get pulled onto
+    // the true nodal lines — mirrors how real sand needs sustained
+    // vibration to compact into crisp lines, not just find them roughly
+    const settle = FORCE * (1 + Math.min(stableFrames / 90, 1.6));
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const [U, dUdx, dUdy] = field(m, n, px[i], py[i]);
+      // Steepest descent on U^2 pushes particles toward U ≈ 0 (nodal lines)
+      const f = -U * settle;
+      vx[i] = (vx[i] + f * dUdx * 0.001) * DAMPING + (Math.random() - 0.5) * jitter;
+      vy[i] = (vy[i] + f * dUdy * 0.001) * DAMPING + (Math.random() - 0.5) * jitter;
+      px[i] += vx[i];
+      py[i] += vy[i];
+      // Reflect softly off the plate edges
+      if (px[i] < 0) { px[i] = 0; vx[i] *= -0.4; }
+      if (px[i] > 1) { px[i] = 1; vx[i] *= -0.4; }
+      if (py[i] < 0) { py[i] = 0; vy[i] *= -0.4; }
+      if (py[i] > 1) { py[i] = 1; vy[i] *= -0.4; }
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = 'rgba(5, 7, 10, 0.28)'; // slight trail instead of hard clear
+    ctx.fillRect(0, 0, W, H);
+
+    // plate boundary, subtle glow
+    ctx.save();
+    ctx.shadowColor = 'rgba(143, 214, 255, 0.35)';
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = 'rgba(143, 214, 255, 0.16)';
+    ctx.strokeRect(offX, offY, side, side);
+    ctx.restore();
+
+    ctx.beginPath();
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const x = offX + px[i] * side;
+      const y = offY + py[i] * side;
+      ctx.rect(x, y, 1.4, 1.4);
+    }
+    ctx.fillStyle = 'rgba(200, 232, 255, 0.85)';
+    ctx.fill();
+  }
+
+  function loop() {
+    resolveState();
+    step();
+    render();
+    requestAnimationFrame(loop);
+  }
+})();
+</script>
+</body>
+</html>
