@@ -32,5 +32,9 @@ Microphone and tab-capture sources require a secure context (`https://` or
 
 ## Notes
 
-The mode affinity readout is a normalized heuristic for interactive exploration,
-not a material-calibrated resonance measurement.
+Mode frequencies are ordered by the plate eigenvalue — `m² + n²` for the square
+plate and `β²` (Bessel zeros) for the circular membrane — and scaled linearly
+across the 50–1600 Hz drive band. Absolute Hz are therefore illustrative, while
+the mode ordering, degenerate pairs, and spacing follow the plate. The mode
+affinity readout reports how close the drive sits to the current mode's
+resonance, reaching zero midway between neighbouring modes.
