@@ -21,8 +21,11 @@ the eigenmode field while up to 200,000 grains migrate toward the nodal lines.
 - Orbit camera: drag to rotate, scroll to zoom, double-click to reset
 - Audio sources: generated tone, microphone, audio file, or captured tab audio.
   Pitch selects the nearest mode; level drives plate amplitude and glow
-- Circular modes with `m > 0` use a real centre hole, so the sand cannot pile up
-  into a central blob
+- Circular modes with `m > 0` keep an open centre mount: grains that reach it fall
+  through and re-seed, so no central blob builds up over a long session
+- A soft rim springs grains back before the hard edge, so long audio sessions
+  cannot ratchet sand into a border pile; grain mobility keeps a floor in quiet
+  passages so settled sand stays loose
 - Live readout of drive frequency, mode, and resonance affinity
 - Presets (Lattice / Crystal / Bloom / Orbit), grain count, energy, and shape controls
 

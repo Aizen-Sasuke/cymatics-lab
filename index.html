@@ -206,7 +206,8 @@ const S = {
 const P = {
   step: 1/90, maxSteps: 5, transport: 17, drive: 9, maxSpeed: 2.6,
   mobility: 1, damping: 3.0, friction: .30, agitation: .36,
-  restitution: .26, jitter: .7
+  restitution: .26, jitter: .7, mobilityFloor: .38,
+  edge: 120, edgeStart: .93, drainScale: 2.4
 };
 let N = matchMedia('(max-width: 820px)').matches ? 40000 : 60000;
 
@@ -486,8 +487,9 @@ in vec2 aPos;
 in vec2 aVel;
 in vec2 aSeed;
 uniform sampler2D uField;
-uniform float uDt, uTime, uPhase, uDamp, uFric, uMax, uRest, uShape, uHole;
+uniform float uDt, uTime, uPhase, uDamp, uFric, uMax, uRest, uShape, uDrain;
 uniform float uDrift, uDriveF, uAgitF, uJit;
+uniform float uEdge, uEdgeStart;
 out vec2 vPos;
 out vec2 vVel;
 void main(){
@@ -502,6 +504,17 @@ void main(){
            + uDriveF * u * aSeed.y * sin(uPhase) * g * 0.18
            + uAgitF * jit * cos(uPhase*0.61) * vec2(g.y + g.x*0.17, -g.x + g.y*0.17)
            + uJit * vec2(j1, j2);
+
+  /* soft rim: a spring instead of a hard wall, so grains cannot ratchet into a pile */
+  if (uShape > 0.5) {
+    float r0 = length(p);
+    if (r0 > uEdgeStart) acc -= (p / max(r0, 1e-6)) * uEdge * (r0 - uEdgeStart);
+  } else {
+    vec2 over = abs(p) - vec2(uEdgeStart);
+    if (over.x > 0.0) acc.x -= sign(p.x) * uEdge * over.x;
+    if (over.y > 0.0) acc.y -= sign(p.y) * uEdge * over.y;
+  }
+
   vec2 nv = (v + acc*uDt) * uDamp;
   float sp = length(nv);
   if (sp > 1e-5) nv *= max(0.0, 1.0 - uFric * min(1.0, sp/0.24));
@@ -515,11 +528,14 @@ void main(){
       float d = dot(nv, n);
       np = n * 0.998;
       nv -= (1.0 + uRest) * min(d, 0.0) * n;
-    } else if (uHole > 0.0 && r < uHole) {
-      vec2 n = np / max(r, 1e-6);
-      float d = dot(nv, n);
-      np = n * uHole;
-      if (d < 0.0) nv -= (1.0 + uRest) * d * n;
+    } else if (uDrain > 0.0 && r < uDrain) {
+      /* the mount is an open hole: grains that reach it fall through and re-seed */
+      float h1 = fract(sin(dot(aSeed, vec2(12.9898, 78.233)) + uTime * 0.13) * 43758.5453);
+      float h2 = fract(sin(dot(aSeed, vec2(39.3468, 11.135)) + uTime * 0.19) * 24634.6345);
+      float rd2 = uDrain * 1.15;
+      float rr = sqrt(rd2 * rd2 + h2 * (1.0 - rd2 * rd2));
+      np = vec2(cos(h1 * 6.2831853), sin(h1 * 6.2831853)) * rr;
+      nv = vec2(0.0);
     }
   } else {
     if (np.x < -1.0) { np.x = -1.0; nv.x = abs(nv.x)*uRest; }
@@ -651,6 +667,7 @@ function buildFieldTexture() {
 /* ------------------------------------------------------------------- simulate */
 function stepSim() {
   const amp = Math.max(.018, S.energy);
+  const mob = Math.max(P.mobilityFloor, amp);
   const src = cur === 0 ? stateBufA : stateBufB;
   const dst = cur === 0 ? stateBufB : stateBufA;
 
@@ -666,11 +683,13 @@ function stepSim() {
   gl.uniform1f(sim.u.uMax, P.maxSpeed);
   gl.uniform1f(sim.u.uRest, P.restitution);
   gl.uniform1f(sim.u.uShape, S.shape === 'circle' ? 1 : 0);
-  gl.uniform1f(sim.u.uHole, holeRadius());
-  gl.uniform1f(sim.u.uDrift, P.transport * Math.pow(amp, 1.15) * P.mobility);
+  gl.uniform1f(sim.u.uDrain, holeRadius() * P.drainScale);
+  gl.uniform1f(sim.u.uDrift, P.transport * Math.pow(mob, 1.15) * P.mobility);
   gl.uniform1f(sim.u.uDriveF, P.drive * amp);
-  gl.uniform1f(sim.u.uAgitF, P.agitation * amp);
-  gl.uniform1f(sim.u.uJit, P.jitter * amp);
+  gl.uniform1f(sim.u.uAgitF, P.agitation * mob);
+  gl.uniform1f(sim.u.uJit, P.jitter * mob);
+  gl.uniform1f(sim.u.uEdge, P.edge);
+  gl.uniform1f(sim.u.uEdgeStart, P.edgeStart);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, src);
   gl.enableVertexAttribArray(sim.a.aPos);
