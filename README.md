@@ -11,9 +11,10 @@ Both pages are single-file, dependency-free, and work offline from `file://`
 
 ## The 3D visualiser
 
-A WebGL standing-wave plate you can orbit. The plate surface is displaced by the
-eigenmode field while up to 45,000 sand grains migrate toward the nodal lines in a
-CPU physics simulation; mode changes re-flow the sand in real time.
+A WebGL 2 standing-wave plate you can orbit. The particle physics runs on the GPU
+via transform feedback: each sand grain is a vertex, integrated in a vertex shader
+and written straight back into a ping-pong buffer. The plate surface is displaced by
+the eigenmode field while up to 200,000 grains migrate toward the nodal lines.
 
 - Square (`cos mπx̃ · cos nπỹ`) and circular (`J_m(βr) · cos mθ`) eigenmodes,
   with a physical centre mount on the circular plate
@@ -26,6 +27,9 @@ CPU physics simulation; mode changes re-flow the sand in real time.
 - Presets (Lattice / Crystal / Bloom / Orbit), grain count, energy, and shape controls
 
 Keyboard: `space` pause, `r` reset grains, `o` auto-orbit, `f` fullscreen, `h` hide UI.
+
+The 3D page needs WebGL 2 (all current desktop and mobile browsers). If it is
+unavailable the page explains why instead of failing silently.
 
 ## The 2D lab
 
