@@ -1,18 +1,36 @@
 # Cymatics Lab
 
-An interactive, single-file Chladni plate lab. Grains are driven by a mathematical
-standing-wave field, vibrate where the plate is active, and migrate toward the
-nodes where it is still.
+Sound made visible: sand grains settle onto the nodal lines of a vibrating Chladni
+plate, driven by real eigenmodes and by actual audio.
 
-Live: https://aizen-sasuke.github.io/cymatics-lab/
+- **3D visualiser (main):** https://aizen-sasuke.github.io/cymatics-lab/
+- **2D lab:** https://aizen-sasuke.github.io/cymatics-lab/lab.html
 
-## Features
+Both pages are single-file, dependency-free, and work offline from `file://`
+(microphone and tab capture need a secure context).
 
-- Square and circular plate geometry with adjustable modes M × N
-- Up to 45,000 simulated grains with tunable energy, damping, friction, and speed
-- Audio sources: generated tone, microphone, audio file, or captured tab audio
-- Frequency sweep, curated mode presets, and a "find something interesting" search
-- Field and node overlays, learn panel, and a live readout
+## The 3D visualiser
+
+A WebGL standing-wave plate you can orbit. The plate surface is displaced by the
+eigenmode field while up to 45,000 sand grains migrate toward the nodal lines in a
+CPU physics simulation; mode changes re-flow the sand in real time.
+
+- Square (`cos mπx̃ · cos nπỹ`) and circular (`J_m(βr) · cos mθ`) eigenmodes,
+  with a physical centre mount on the circular plate
+- Orbit camera: drag to rotate, scroll to zoom, double-click to reset
+- Audio sources: generated tone, microphone, audio file, or captured tab audio.
+  Pitch selects the nearest mode; level drives plate amplitude and glow
+- Circular modes with `m > 0` use a real centre hole, so the sand cannot pile up
+  into a central blob
+- Live readout of drive frequency, mode, and resonance affinity
+- Presets (Lattice / Crystal / Bloom / Orbit), grain count, energy, and shape controls
+
+Keyboard: `space` pause, `r` reset grains, `o` auto-orbit, `f` fullscreen, `h` hide UI.
+
+## The 2D lab
+
+The original top-down plate at [`lab.html`](lab.html): same physics, plus frequency
+sweep, mode search, field/node overlays, and export. It links back to the 3D view.
 
 ## Legacy versions
 

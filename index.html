@@ -1,135 +1,1122 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070a11"><meta name="description" content="A real-time reduced-order granular Chladni plate simulation.">
-<title>Cymatics Lab — Interactive Chladni Plate</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cymatics 3D — Sand & Sound</title>
+<meta name="description" content="A 3D Chladni plate: sand grains settle on the nodal lines of a vibrating plate driven by sound.">
 <style>
-:root{--bg:#070a11;--panel:rgba(14,20,31,.78);--line:rgba(169,215,255,.15);--text:#e8f5ff;--muted:#8aa0b2;--cyan:#75ddff;--gold:#ffcf75;--danger:#ff8e99;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:var(--bg)}
-*{box-sizing:border-box}body{margin:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,#101b2c 0,#070a11 52%,#04060a 100%);font-size:13px;letter-spacing:.01em}button,input,select{font:inherit}button{cursor:pointer;color:var(--text);background:rgba(137,208,255,.07);border:1px solid var(--line);border-radius:8px;padding:8px 10px;transition:.18s ease}button:hover,button.active{border-color:rgba(117,221,255,.7);background:rgba(117,221,255,.14)}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}.icon{width:32px;padding:6px;font-size:16px}.primary{background:linear-gradient(135deg,#62ccee,#548ff2);color:#041017;border:0;font-weight:750}.danger{color:#ffadb6}.hidden{display:none!important}canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none}.glass{background:var(--panel);border:1px solid var(--line);box-shadow:0 14px 50px rgba(0,0,0,.27),inset 0 1px rgba(255,255,255,.03);backdrop-filter:blur(15px);border-radius:13px}.topbar{position:fixed;z-index:3;left:18px;right:18px;top:max(14px,env(safe-area-inset-top));height:50px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}.topbar>*{pointer-events:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.13em;font-size:12px}.brand-mark{width:25px;height:25px;border:1px solid var(--cyan);border-radius:50%;position:relative;box-shadow:0 0 16px rgba(117,221,255,.35)}.brand-mark:before,.brand-mark:after{content:"";position:absolute;inset:5px;border:1px solid rgba(117,221,255,.8);border-radius:50%}.brand-mark:after{inset:10px}.top-actions,.experiences{display:flex;gap:7px}.experiences button{font-size:10px;padding:7px 8px;letter-spacing:.07em}.layout{position:fixed;z-index:2;inset:78px 18px 18px;display:grid;grid-template-columns:270px 1fr 270px;gap:14px;pointer-events:none}.side{pointer-events:auto;align-self:start;padding:12px;max-height:calc(100vh - 100px);overflow:auto}.side.right{justify-self:end}.section{padding:10px 3px 13px;border-bottom:1px solid rgba(169,215,255,.1)}.section:last-child{border:0}.section h2{margin:0 0 10px;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.15em;text-transform:uppercase}.row{display:flex;align-items:center;gap:8px;margin:8px 0}.row label,.field label{flex:1;color:#b8cbd9}.row output,.metric strong{font-variant-numeric:tabular-nums;color:var(--cyan);min-width:38px;text-align:right}.field{margin:9px 0}.field-head{display:flex;justify-content:space-between;color:#b8cbd9;margin-bottom:5px}.field-head output{color:var(--cyan)}input[type=range]{appearance:none;width:100%;height:3px;background:rgba(173,214,240,.2);border-radius:4px;accent-color:var(--cyan);vertical-align:middle}input[type=range]::-webkit-slider-thumb{appearance:none;width:13px;height:13px;border:2px solid #d9f7ff;background:#67c9e9;border-radius:50%}select{background:#101a27;border:1px solid var(--line);border-radius:6px;color:var(--text);padding:5px;min-width:105px}.split{display:grid;grid-template-columns:1fr 1fr;gap:7px}.toolrow{display:flex;gap:6px;flex-wrap:wrap}.toolrow button{flex:1;white-space:nowrap;padding:7px 6px}.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.metric{border:1px solid rgba(169,215,255,.09);background:rgba(0,0,0,.11);border-radius:7px;padding:7px}.metric small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}.metric strong{font-size:14px;display:block;margin-top:2px}.meter{height:5px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:8px}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#60c9ef,#ffe59a);transition:width .2s}.source-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.source-grid button{font-size:11px;padding:8px 4px}.status{font-size:11px;color:var(--muted);min-height:17px;line-height:1.35}.status.error{color:#ffabb4}.center-hud{position:fixed;z-index:1;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 12px;pointer-events:auto;white-space:nowrap}.frequency{font-size:20px;font-weight:650;letter-spacing:-.04em}.frequency small{font-size:9px;color:var(--muted);letter-spacing:.12em;display:block;text-transform:uppercase}.mode-pill{padding-left:12px;border-left:1px solid var(--line);font-weight:700}.resonance{width:78px}.resonance small{font-size:9px;display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}.advanced{display:none}.advanced.open{display:block}.debug{display:none;white-space:pre-wrap;font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;color:#a6c6d5}.debug.open{display:block}.welcome,.modal{position:fixed;z-index:5;inset:0;display:grid;place-items:center;background:rgba(2,5,9,.67);backdrop-filter:blur(7px);padding:20px}.welcome article,.dialog{width:min(560px,100%);padding:30px;text-align:center}.welcome .eyebrow{color:var(--cyan);letter-spacing:.2em;font-weight:700;font-size:10px}.welcome h1{font-size:clamp(32px,6vw,60px);letter-spacing:-.07em;margin:10px 0 13px;line-height:.92}.welcome p{color:#adc1d0;line-height:1.55;max-width:450px;margin:0 auto 22px}.welcome .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}.welcome .choices button{padding:12px}.welcome footer{margin-top:17px;color:var(--muted);font-size:11px}.modal{display:none}.modal.show{display:grid}.dialog{text-align:left;max-height:85vh;overflow:auto}.dialog h2{margin:0 0 12px;font-size:20px}.dialog p,.dialog li{color:#afc2cf;line-height:1.5}.dialog .actions{display:flex;justify-content:flex-end;gap:7px;margin-top:16px}.cards{display:grid;gap:7px}.card{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px}.card .thumb{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,#ecfbff 0 12%,transparent 13% 27%,#79dffb 29% 32%,transparent 34%);border:1px solid rgba(117,221,255,.45)}.card .name{font-weight:650;flex:1}.card small{display:block;color:var(--muted)}.toast{position:fixed;z-index:9;left:50%;bottom:84px;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:9px 12px;transition:.25s;background:#112232;border:1px solid var(--line);border-radius:8px}.toast.show{opacity:1;transform:translate(-50%,0)}.record-dot{color:#ff7d89;font-size:16px;vertical-align:-1px}.learn-callout{position:fixed;z-index:2;right:303px;top:86px;max-width:250px;padding:10px;display:none;color:#cfe1eb;line-height:1.4;pointer-events:none}.learn-callout.show{display:block}body[data-view="explore"] .experiment-only,body[data-view="explore"] .side.right{display:none}body[data-view="explore"] .side.left{max-width:270px}body[data-view="discover"] .side.right{display:none}@media(max-width:850px){.layout{grid-template-columns:1fr;inset:72px 10px 10px;pointer-events:none}.side{max-width:min(310px,calc(100vw - 20px));max-height:calc(100vh - 160px);padding:9px}.side.right{display:none}.side.left{align-self:end}.center-hud{bottom:12px;max-width:calc(100vw - 20px)}.topbar{left:10px;right:10px}.experiences{display:none}.top-actions button:not(.always){display:none}.learn-callout{right:10px;top:72px}.welcome article{padding:23px}.welcome .choices{grid-template-columns:1fr}.frequency{font-size:16px}}
+  :root{
+    --ink:#dfeef7; --muted:#7691a4; --dim:#4d6577;
+    --cyan:#5be7ff; --gold:#ffcf82;
+    --line:rgba(120,210,240,.14); --glass:rgba(8,18,28,.62);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;overflow:hidden;background:#04070d;color:var(--ink);
+    font:13px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  canvas#gl:active{cursor:grabbing}
+  button,select,input{font:inherit;color:inherit}
+  button{cursor:pointer}
+  .hidden{display:none!important}
+
+  header{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;
+    align-items:center;gap:14px;padding:16px 20px;pointer-events:none}
+  .brand{display:flex;align-items:center;gap:11px;pointer-events:auto}
+  .logo{width:28px;height:28px;border-radius:50%;border:1px solid rgba(91,231,255,.4);position:relative;
+    box-shadow:0 0 22px rgba(91,231,255,.22),inset 0 0 12px rgba(91,231,255,.12)}
+  .logo:before,.logo:after{content:"";position:absolute;inset:0;border-radius:50%}
+  .logo:before{background:radial-gradient(circle at 50% 50%,rgba(91,231,255,.85),rgba(91,231,255,0) 62%)}
+  .logo:after{inset:8px;border:1px solid rgba(255,207,130,.55)}
+  h1{margin:0;font-size:13px;font-weight:650;letter-spacing:.28em;white-space:nowrap}
+  h1 em{font-style:normal;color:var(--cyan)}
+  .sub{font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  nav{display:flex;gap:8px;pointer-events:auto}
+  .pill{background:rgba(10,22,32,.66);border:1px solid var(--line);color:var(--ink);
+    border-radius:999px;padding:7px 13px;font-size:11.5px;letter-spacing:.04em;
+    backdrop-filter:blur(10px);transition:border-color .2s,background .2s,color .2s;text-decoration:none;white-space:nowrap}
+  .pill:hover{border-color:rgba(91,231,255,.45);background:rgba(14,32,46,.8)}
+  .pill.on{border-color:rgba(91,231,255,.55);color:#bfefff;background:rgba(20,52,66,.72)}
+
+  #hud{position:fixed;left:22px;bottom:20px;z-index:5;pointer-events:none;
+    text-shadow:0 2px 18px rgba(0,0,0,.7)}
+  #hud .hz{display:flex;align-items:baseline;gap:7px;line-height:1}
+  #hud .hz span{font-size:44px;font-weight:250;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  #hud .hz small{font-size:12px;letter-spacing:.22em;color:var(--muted)}
+  #hud .rows{margin-top:8px;display:flex;gap:20px;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+  #hud .rows b{display:block;margin-top:3px;font-size:13px;letter-spacing:.06em;color:var(--ink);
+    text-transform:none;font-weight:500;font-variant-numeric:tabular-nums}
+  #hud .meter{width:190px;height:2px;background:rgba(255,255,255,.09);margin-top:12px;overflow:hidden;border-radius:2px}
+  #hud .meter i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--cyan),var(--gold));
+    box-shadow:0 0 12px rgba(91,231,255,.7);transition:width .18s linear}
+
+  #panel{position:fixed;top:74px;right:20px;z-index:6;width:268px;max-height:calc(100vh - 100px);
+    overflow:auto;padding:4px 16px;border:1px solid var(--line);border-radius:16px;
+    background:var(--glass);backdrop-filter:blur(18px) saturate(1.2);
+    box-shadow:0 20px 60px rgba(0,0,0,.45);scrollbar-width:thin;scrollbar-color:rgba(91,231,255,.25) transparent}
+  #panel::-webkit-scrollbar{width:6px}
+  #panel::-webkit-scrollbar-thumb{background:rgba(91,231,255,.2);border-radius:3px}
+  .group{padding:13px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+  .group:last-child{border-bottom:0}
+  .head{display:flex;justify-content:space-between;align-items:center;font-size:9px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+  .head b{color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:none}
+  .slider{margin:9px 0}
+  .slider label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+  .slider label b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;height:18px;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+  input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(255,255,255,.13);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-4.5px;
+    border-radius:50%;background:var(--cyan);box-shadow:0 0 10px rgba(91,231,255,.8);border:0}
+  input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.13)}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--cyan)}
+  select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:8px;
+    padding:7px 9px;font-size:12px;outline:none}
+  .sources{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:11px}
+  .sources button,.presets button,.row button{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+    color:var(--muted);border-radius:7px;padding:6px 4px;font-size:10.5px;transition:.18s}
+  .sources button:hover,.presets button:hover,.row button:hover{color:var(--ink);border-color:rgba(91,231,255,.3)}
+  .sources button.on,.row button.on{border-color:rgba(91,231,255,.5);color:#c9f3ff;background:rgba(91,231,255,.1)}
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .row{display:flex;gap:5px}
+  .row>*{flex:1}
+  #hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:4;font-size:10px;
+    letter-spacing:.16em;text-transform:uppercase;color:rgba(118,145,164,.62);pointer-events:none;white-space:nowrap}
+  #toast{position:fixed;left:50%;top:20px;transform:translate(-50%,-14px);z-index:20;pointer-events:none;
+    background:rgba(8,20,30,.9);border:1px solid rgba(91,231,255,.25);color:#cdeffc;
+    padding:8px 14px;border-radius:999px;font-size:11.5px;letter-spacing:.04em;opacity:0;transition:.25s}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #fallback{position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:30px;z-index:30;
+    background:#04070d;color:var(--muted);line-height:1.7}
+  #fallback b{color:var(--ink);display:block;margin-bottom:6px;font-size:15px}
+  @media (max-width:820px){
+    #panel{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:46vh;padding:2px 13px}
+    #hud{display:none}
+    #hint{display:none}
+    header{padding:10px 12px;gap:8px}
+    nav{gap:5px}
+    .pill{padding:5px 9px;font-size:10px}
+    h1{font-size:11px;letter-spacing:.16em}
+    .sub{display:none}
+    .logo{width:24px;height:24px}
+    .head{margin-bottom:7px}
+    .slider{margin:7px 0}
+  }
 </style>
 </head>
-<body data-view="explore">
-<canvas id="plate" aria-label="Interactive Cymatics plate; drag or tap to disturb the grains"></canvas>
-<header class="topbar"><div class="glass brand"><span class="brand-mark"></span>CYMATICS LAB <span style="color:var(--muted);font-weight:500">/ 1.1</span></div><nav class="glass experiences" aria-label="Lab experiences"><button data-view="explore" class="active">Explore</button><button data-view="experiment">Experiment</button><button data-view="discover">Discover</button><button data-view="learn">Learn</button></nav><div class="top-actions"><button id="pause" class="always" aria-label="Pause simulation">Ⅱ</button><button id="shot" class="always">Export</button><button id="library" class="always">Library</button><button id="help">?</button></div></header>
-<main class="layout" aria-label="Cymatics Lab controls">
- <aside class="glass side left"><div class="section"><h2>Plate</h2><div class="row"><label for="shape">Geometry</label><select id="shape"><option value="square">Square plate</option><option value="circle">Circular plate</option></select></div><div class="split experiment-only"><div class="field"><div class="field-head"><label for="m">Mode M</label><output id="mOut">3</output></div><input id="m" type="range" min="0" max="9" value="3"></div><div class="field"><div class="field-head"><label for="n">Mode N</label><output id="nOut">2</output></div><input id="n" type="range" min="1" max="9" value="2"></div></div><div class="field experiment-only" id="mixField"><div class="field-head"><label for="mix">Mode blend</label><output id="mixOut">1.00</output></div><input id="mix" type="range" min="-100" max="100" value="100"></div></div>
- <div class="section"><h2>Granular response</h2><div class="field"><div class="field-head"><label for="energy">Energy</label><output id="energyOut">58%</output></div><input id="energy" type="range" min="0" max="100" value="58"></div><div class="field"><div class="field-head"><label for="count">Grains</label><output id="countOut">12k</output></div><input id="count" type="range" min="2000" max="45000" step="1000" value="12000"></div><div class="field"><div class="field-head"><label for="speed">Lab speed</label><output id="speedOut">1.0×</output></div><input id="speed" type="range" min="25" max="200" value="100"></div><div class="toolrow"><button id="reset">Reset</button><button id="burst">Burst</button><button id="tapMode">Tap: on</button></div></div>
- <div class="section"><h2>Sources</h2><div class="source-grid"><button data-source="manual">Manual</button><button data-source="tone">Generate tone</button><button data-source="mic">Microphone</button><button data-source="file">Load audio</button><button data-source="tab">Capture tab</button></div><input id="audioFile" type="file" accept="audio/*" hidden><div id="sourceStatus" class="status">Manual field control</div></div>
- <div class="section" id="tonePanel"><h2>Tone instrument</h2><div class="field"><div class="field-head"><label for="toneHz">Frequency</label><output id="toneHzOut">440 Hz</output></div><input id="toneHz" type="range" min="50" max="1600" step="0.1" value="440"></div><div class="row"><label for="waveform">Waveform</label><select id="waveform"><option>sine</option><option>triangle</option><option>square</option><option>sawtooth</option></select></div><div class="field"><div class="field-head"><label for="volume">Volume</label><output id="volumeOut">34%</output></div><input id="volume" type="range" min="0" max="100" value="34"></div><div class="toolrow"><button class="hzPreset" data-hz="180">180</button><button class="hzPreset" data-hz="320">320</button><button class="hzPreset" data-hz="440">440</button><button class="hzPreset" data-hz="720">720</button><button id="mute">Mute</button></div></div></aside>
- <aside class="glass side right"><div class="section"><h2>Readout</h2><div class="metric-grid"><div class="metric"><small>source</small><strong id="sourceReadout">manual</strong></div><div class="metric"><small>mode</small><strong id="modeReadout">3 × 2</strong></div><div class="metric"><small>frequency</small><strong id="freqReadout">440 Hz</strong></div><div class="metric"><small>mode affinity</small><strong id="resReadout">82%</strong></div></div><div class="meter" title="Normalized mode affinity"><i id="resMeter"></i></div></div>
- <div class="section"><h2>View</h2><div class="toolrow"><button id="fieldToggle">Field</button><button id="nodesToggle">Nodes</button><button id="learnToggle">Learn</button></div><div class="toolrow" style="margin-top:6px"><button id="sweepToggle">Sweep lab</button><button id="record">● Record</button></div></div>
- <div class="section" id="sweepPanel" style="display:none"><h2>Frequency sweep</h2><div class="field"><div class="field-head"><label for="sweepStart">Start</label><output id="sweepStartOut">120 Hz</output></div><input id="sweepStart" type="range" min="50" max="1500" value="120"></div><div class="field"><div class="field-head"><label for="sweepEnd">End</label><output id="sweepEndOut">1100 Hz</output></div><input id="sweepEnd" type="range" min="50" max="1600" value="1100"></div><div class="field"><div class="field-head"><label for="sweepSecs">Duration</label><output id="sweepSecsOut">14 s</output></div><input id="sweepSecs" type="range" min="3" max="45" value="14"></div><div class="toolrow"><button id="sweepRun" class="primary">Start sweep</button><button id="sweepReverse">Reverse</button></div></div>
- <div class="section"><button id="advancedToggle" style="width:100%">Advanced physics</button><div class="advanced" id="advanced"><div class="field"><div class="field-head"><label for="mobility">Mobility</label><output id="mobilityOut">1.00</output></div><input id="mobility" type="range" min="20" max="220" value="100"></div><div class="field"><div class="field-head"><label for="damping">Damping</label><output id="dampingOut">5.2</output></div><input id="damping" type="range" min="10" max="100" value="52"></div><div class="field"><div class="field-head"><label for="friction">Friction</label><output id="frictionOut">0.42</output></div><input id="friction" type="range" min="0" max="100" value="42"></div><div class="field"><div class="field-head"><label for="agitation">Agitation</label><output id="agitationOut">0.18</output></div><input id="agitation" type="range" min="0" max="100" value="18"></div><div class="field"><div class="field-head"><label for="restitution">Boundary bounce</label><output id="restitutionOut">0.26</output></div><input id="restitution" type="range" min="0" max="100" value="26"></div></div></div>
- <div class="section"><h2>Curated modes</h2><div class="toolrow"><button class="preset" data-preset="butterfly">Butterfly</button><button class="preset" data-preset="crystal">Crystal</button><button class="preset" data-preset="flower">Flower</button><button class="preset" data-preset="radial">Radial</button></div><div class="toolrow" style="margin-top:7px"><button id="discoverRun">Find something interesting</button><button id="demoRun">Demo mode</button></div></div><div class="section"><button id="debugToggle">Debug</button><pre id="debug" class="debug"></pre></div></aside>
-</main>
-<div id="learnCallout" class="glass learn-callout"><strong>Reduced-order granular model</strong><br>Fast, zero-mean vibration keeps grains active. The time-averaged force <em>−∇(U²)</em> transports them away from antinodes and toward true standing-wave nodes.</div>
-<div class="glass center-hud"><div class="frequency"><small>drive frequency</small><span id="hudHz">440</span> Hz</div><div class="mode-pill"><small style="color:var(--muted);display:block;font-size:9px;letter-spacing:.1em">PLATE MODE</small><span id="hudMode">3 × 2</span></div><div class="resonance"><small>mode affinity</small><div class="meter"><i id="hudRes"></i></div></div></div>
-<section id="welcome" class="welcome"><article class="glass"><div class="eyebrow">REAL-TIME STANDING WAVES</div><h1>See sound<br>become geometry.</h1><p>Explore a physics-inspired granular plate. Grains vibrate, migrate, and gather where a mathematical standing wave is truly still.</p><div class="choices"><button class="primary" data-welcome="manual">Explore the lab</button><button data-welcome="tone">Generate a tone</button><button data-welcome="mic">Use microphone</button><button data-welcome="file">Load audio</button></div><footer>Drag the plate to disturb it · Space pauses · ? opens help</footer></article></section>
-<section id="modal" class="modal" role="dialog" aria-modal="true"><article id="dialog" class="glass dialog"></article></section><div id="toast" class="toast" role="status"></div>
+<body>
+<canvas id="gl"></canvas>
+
+<header>
+  <div class="brand">
+    <span class="logo"></span>
+    <div><h1>CYMATICS <em>3D</em></h1><div class="sub">sound made visible</div></div>
+  </div>
+  <nav>
+    <a class="pill" href="lab.html">2D lab</a>
+    <button id="btnPlay" class="pill">Pause</button>
+    <button id="btnReset" class="pill">Reset</button>
+  </nav>
+</header>
+
+<section id="hud">
+  <div class="hz"><span id="hzBig">157</span><small>Hz</small></div>
+  <div class="rows">
+    <div>mode<b id="modeOut">3 × 2</b></div>
+    <div>affinity<b id="affOut">100%</b></div>
+  </div>
+  <div class="meter"><i id="affBar"></i></div>
+</section>
+
+<aside id="panel">
+  <div class="group">
+    <div class="head"><span>Plate</span><b id="plateSize">square</b></div>
+    <select id="shape">
+      <option value="square">Square plate</option>
+      <option value="circle">Circular plate</option>
+    </select>
+    <div class="slider"><label>Mode M <b id="mVal">3</b></label><input id="m" type="range" min="1" max="9" step="1" value="3"></div>
+    <div class="slider"><label>Mode N <b id="nVal">2</b></label><input id="n" type="range" min="1" max="9" step="1" value="2"></div>
+  </div>
+
+  <div class="group">
+    <div class="head"><span>Drive</span><b id="srcLabel">silent</b></div>
+    <div class="sources">
+      <button data-src="silent" class="on">Silent</button>
+      <button data-src="tone">Tone</button>
+      <button data-src="mic">Mic</button>
+      <button data-src="file">Audio</button>
+      <button data-src="tab">Tab</button>
+    </div>
+    <div class="slider"><label>Frequency <b id="hzVal">157 Hz</b></label><input id="hz" type="range" min="50" max="1600" step="0.1" value="157"></div>
+    <div class="slider"><label>Energy <b id="enVal">62%</b></label><input id="energy" type="range" min="0" max="100" step="1" value="62"></div>
+    <div class="slider"><label>Grains <b id="gVal">30k</b></label><input id="grains" type="range" min="8000" max="45000" step="1000" value="30000"></div>
+  </div>
+
+  <div class="group">
+    <div class="head"><span>Look</span></div>
+    <div class="row">
+      <button id="btnOrbit" class="on">Auto-orbit</button>
+      <button id="btnFull">Fullscreen</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="head"><span>Presets</span></div>
+    <div class="presets">
+      <button data-preset="lattice">Lattice</button>
+      <button data-preset="crystal">Crystal</button>
+      <button data-preset="bloom">Bloom</button>
+      <button data-preset="orbit">Orbit</button>
+    </div>
+  </div>
+</aside>
+
+<div id="hint">drag to orbit · scroll to zoom · double-click to reset view</div>
+<input id="file" type="file" accept="audio/*" hidden>
+<div id="toast"></div>
+<div id="fallback" class="hidden"><div><b>WebGL is unavailable</b>This visualiser needs WebGL. Try a current Chrome, Edge, Firefox, or Safari with hardware acceleration enabled.</div></div>
+
 <script>
-(() => {'use strict';
-const $=id=>document.getElementById(id), TAU=Math.PI*2, clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const ui={canvas:$('plate'),shape:$('shape'),m:$('m'),n:$('n'),mix:$('mix'),mixField:$('mixField'),energy:$('energy'),count:$('count'),speed:$('speed'),mOut:$('mOut'),nOut:$('nOut'),mixOut:$('mixOut'),energyOut:$('energyOut'),countOut:$('countOut'),speedOut:$('speedOut'),sourceStatus:$('sourceStatus'),toneHz:$('toneHz'),toneHzOut:$('toneHzOut'),volume:$('volume'),volumeOut:$('volumeOut'),waveform:$('waveform'),audioFile:$('audioFile'),pause:$('pause'),field:$('fieldToggle'),nodes:$('nodesToggle'),learn:$('learnToggle'),learnCallout:$('learnCallout'),sweep:$('sweepToggle'),sweepPanel:$('sweepPanel'),sweepStart:$('sweepStart'),sweepEnd:$('sweepEnd'),sweepSecs:$('sweepSecs'),sweepStartOut:$('sweepStartOut'),sweepEndOut:$('sweepEndOut'),sweepSecsOut:$('sweepSecsOut'),sweepRun:$('sweepRun'),sweepReverse:$('sweepReverse'),advanced:$('advanced'),advancedToggle:$('advancedToggle'),mobility:$('mobility'),damping:$('damping'),friction:$('friction'),agitation:$('agitation'),restitution:$('restitution'),mobilityOut:$('mobilityOut'),dampingOut:$('dampingOut'),frictionOut:$('frictionOut'),agitationOut:$('agitationOut'),restitutionOut:$('restitutionOut'),sourceReadout:$('sourceReadout'),modeReadout:$('modeReadout'),freqReadout:$('freqReadout'),resReadout:$('resReadout'),resMeter:$('resMeter'),hudHz:$('hudHz'),hudMode:$('hudMode'),hudRes:$('hudRes'),debug:$('debug'),debugToggle:$('debugToggle'),modal:$('modal'),dialog:$('dialog'),toast:$('toast'),welcome:$('welcome'),record:$('record')};
-const S={shape:'square',m:3,n:2,mix:1,energy:.58,speed:1,frequency:440,source:'manual',phase:0,paused:false,running:false,view:'explore',field:false,nodes:false,learn:false,acc:0,last:0,fps:60,frames:0,dropped:0,physicsMs:0,renderMs:0,simTime:0,renderSkip:1,renderCounter:0,sweep:{open:false,running:false,reverse:false,t:0},demo:{running:false,t:0,index:0},tap:true,resonance:.82};
-const P={step:1/90,maxSteps:5,transport:15,drive:7.4,maxSpeed:1.9,mobility:1,damping:4.4,friction:.42,agitation:.24,restitution:.26};
-let px,py,vx,vy,grain,seed,N=12000,ctx=ui.canvas.getContext('2d',{alpha:false,desynchronized:true}),W=0,H=0,dpr=1,side=1,ox=0,oy=0;
-let radial=new Float32Array(1025),radialD=new Float32Array(1025),tableM=-1,tableN=-1,fieldU=0,fieldX=0,fieldY=0;
-let audio={ctx:null,analyser:null,data:null,timeData:null,source:null,gain:null,osc:null,element:null,stream:null,active:false,muted:false,amp:0,hz:440,smoothHz:440,stableHz:440,confidence:0,lastModeAt:0};
-window.CymaticsEntitlement={pro:true,demo:true}; // Demo build: Pro features are unlocked on purpose. Wire a real account check here to gate them.
-const Entitlement={has(feature){const e=window.CymaticsEntitlement;return !!(e?.pro||e?.features?.includes?.(feature)||e?.has?.(feature))},require(feature){if(this.has(feature))return true;this.explain(feature);return false},explain(feature){showModal('Cymatics Lab Pro',`<p><b>${feature.replaceAll('_',' ')}</b> is a Pro capability.</p><p>Pro features are unlocked in this demo build. A production account service can gate them through <code>window.CymaticsEntitlement.has("${feature}")</code> or a matching entry in <code>features</code>.</p>`)} };
-// Local-only event seam; an analytics adapter can listen without coupling the lab to a vendor SDK.
-const Events={recent:[],emit(name,data={}){const event={name,data,time:Date.now()};this.recent.push(event);if(this.recent.length>100)this.recent.shift();window.dispatchEvent(new CustomEvent('cymatics:event',{detail:event}))}};
-function hashState(){if(location.protocol==='file:')return;const q=new URLSearchParams(location.search);for(const [k,v] of Object.entries({shape:S.shape,m:S.m,n:S.n,mix:S.mix,hz:Math.round(S.frequency),energy:Math.round(S.energy*100),count:N}))q.set(k,v);const next='?'+q.toString();if(history.state===next||location.search===next)return;clearTimeout(hashState.t);hashState.t=setTimeout(()=>{try{history.replaceState(next,'',location.pathname+next)}catch(e){}},220)}
-function loadState(){const q=new URLSearchParams(location.search), num=(k,d)=>q.has(k)?+q.get(k):d; if(['square','circle'].includes(q.get('shape')))S.shape=q.get('shape');S.m=clamp(num('m',S.m),S.shape==='circle'?0:1,9)|0;S.n=clamp(num('n',S.n),1,9)|0;S.mix=clamp(num('mix',S.mix),-1,1);S.frequency=clamp(num('hz',S.frequency),50,1600);S.energy=clamp(num('energy',S.energy*100)/100,0,1);N=Math.round(clamp(num('count',N)||N,2000,45000));ui.shape.value=S.shape;ui.m.min=S.shape==='circle'?0:1;ui.m.value=S.m;ui.n.value=S.n;ui.mix.value=S.mix*100;ui.energy.value=S.energy*100;ui.count.value=N;ui.toneHz.value=S.frequency}
-// Field subsystem: U and its analytic spatial derivatives use coordinates x,y ∈ [-1,1].
-function squareField(x,y){const ax=Math.PI*(x+1)*.5,ay=Math.PI*(y+1)*.5,m=S.m,n=S.n,q=S.mix,cmx=Math.cos(m*ax),cny=Math.cos(n*ay),cnx=Math.cos(n*ax),cmy=Math.cos(m*ay);fieldU=cmx*cny-q*cnx*cmy;fieldX=.5*(-m*Math.PI*Math.sin(m*ax)*cny+q*n*Math.PI*Math.sin(n*ax)*cmy);fieldY=.5*(-n*Math.PI*cmx*Math.sin(n*ay)+q*m*Math.PI*cnx*Math.sin(m*ay))}
-function besselArray(x,max){if(Math.abs(x)<1e-8){const z=new Float64Array(max+2);z[0]=1;return z}const top=max+Math.ceil(Math.abs(x))+20,a=new Float64Array(top+2);a[top]=1;for(let k=top;k>0;k--)a[k-1]=2*k/x*a[k]-a[k+1];let norm=a[0];for(let k=2;k<=top;k+=2)norm+=2*a[k];for(let k=0;k<=max+1;k++)a[k]/=norm;return a}
-function bessel(m,x){return besselArray(x,m)[m]}
-const roots=Array.from({length:10},()=>[]);function buildRoots(){for(let m=0;m<=9;m++){let oldX=.02,old=bessel(m,oldX);for(let x=.05;roots[m].length<9&&x<55;x+=.035){const now=bessel(m,x);if(now*old<=0){let lo=oldX,hi=x,fl=old;for(let k=0;k<28;k++){const mid=(lo+hi)/2,f=bessel(m,mid);if(f*fl>0){lo=mid;fl=f}else hi=mid}roots[m].push((lo+hi)/2)}oldX=x;old=now}}}
-let rootsReady=false;function buildCircleTable(){if(S.shape!=='circle')return;if(tableM===S.m&&tableN===S.n)return;ensureRoots();tableM=S.m;tableN=S.n;const beta=roots[S.m][S.n-1]||roots[0][0],len=radial.length-1;for(let i=0;i<=len;i++){const a=besselArray(beta*i/len,S.m+1);radial[i]=a[S.m];radialD[i]=beta*.5*((S.m?a[S.m-1]:-a[1])-a[S.m+1])}}
-function circleField(x,y){const r=Math.sqrt(x*x+y*y),f=Math.min(1024,r*1024),i=f|0,t=f-i,j=radial[i]+(radial[Math.min(1024,i+1)]-radial[i])*t,dr=radialD[i]+(radialD[Math.min(1024,i+1)]-radialD[i])*t,rr=Math.max(r,1e-5),a=Math.atan2(y,x),co=Math.cos(S.m*a),si=Math.sin(S.m*a),ur=dr*co,ut=-S.m*j*si;fieldU=j*co;fieldX=ur*x/rr-ut*y/(rr*rr);fieldY=ur*y/rr+ut*x/(rr*rr)}
-function sampleField(x,y){if(S.shape==='circle')circleField(x,y);else squareField(x,y)}
-// Particle subsystem: fast vibration + averaged transport −∇U² = −2U∇U + frictional/inertial grains.
-function allocate(n){N=n;px=new Float32Array(n);py=new Float32Array(n);vx=new Float32Array(n);vy=new Float32Array(n);grain=new Float32Array(n);seed=new Float32Array(n);resetParticles();syncUI()}
-function resetParticles(){for(let i=0;i<N;i++){let x,y;if(S.shape==='circle'){const r=Math.sqrt(Math.random()),a=Math.random()*TAU;x=r*Math.cos(a);y=r*Math.sin(a)}else{x=Math.random()*2-1;y=Math.random()*2-1}px[i]=x;py[i]=y;vx[i]=vy[i]=0;grain[i]=.72+Math.random()*.56;seed[i]=Math.random()*TAU}S.simTime=0}
-function burst(x=0,y=0,power=.62){for(let i=0;i<N;i++){const dx=px[i]-x,dy=py[i]-y,d2=dx*dx+dy*dy;if(d2<.42){const inv=power/(.025+d2);vx[i]+=dx*inv;vy[i]+=dy*inv}}}
-function bound(i,x,y){let ax=vx[i],ay=vy[i],e=P.restitution;if(S.shape==='circle'){const r2=x*x+y*y;if(r2>1){const r=Math.sqrt(r2),nx=x/r,ny=y/r,dot=ax*nx+ay*ny;x=nx*.998;y=ny*.998;ax-=(1+e)*dot*nx;ay-=(1+e)*dot*ny}}else{if(x<-1){x=-1;ax=Math.abs(ax)*e}else if(x>1){x=1;ax=-Math.abs(ax)*e}if(y<-1){y=-1;ay=Math.abs(ay)*e}else if(y>1){y=1;ay=-Math.abs(ay)*e}}px[i]=x;py[i]=y;vx[i]=ax;vy[i]=ay}
-function simulate(dt){const amp=Math.max(.018,S.energy),phase=Math.sin(S.phase),phase2=Math.cos(S.phase*.61),damp=Math.exp(-P.damping*dt),mob=P.mobility,drift=P.transport*Math.pow(amp,1.15)*mob,shake=P.drive*amp,ag=P.agitation*amp,fric=P.friction*dt;for(let i=0;i<N;i++){let x=px[i],y=py[i];sampleField(x,y);const u=fieldU,gx=fieldX,gy=fieldY,g=grain[i],jitter=Math.sin(S.simTime*19.7+seed[i])*Math.sin(S.simTime*7.1+seed[i]*1.7);/* instantaneous plate acceleration has zero mean; its spatial coupling gives visible agitation. */let ax=(-2*drift*u*gx)+(shake*phase*g*u*gx*.18)+(ag*jitter*phase2*(gy+gx*.17));let ay=(-2*drift*u*gy)+(shake*phase*g*u*gy*.18)+(ag*jitter*phase2*(-gx+gy*.17));let ux=(vx[i]+ax*dt)*damp,uy=(vy[i]+ay*dt)*damp;const sp=Math.sqrt(ux*ux+uy*uy);if(sp>1e-5){const loss=Math.max(0,1-fric*Math.min(1,sp/.24));ux*=loss;uy*=loss}if(sp>P.maxSpeed){const s=P.maxSpeed/sp;ux*=s;uy*=s}vx[i]=ux;vy[i]=uy;x+=ux*dt;y+=uy*dt;if(!Number.isFinite(x+y+ux+uy)){x=((i*0.618)%2)-1;y=((i*.414)%2)-1;vx[i]=vy[i]=0}bound(i,x,y)}S.simTime+=dt}
-function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;ui.canvas.width=W*dpr;ui.canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);side=Math.max(100,Math.min(W,H)*.76);ox=(W-side)/2;oy=(H-side)/2}
-function drawField(nodes){const cells=nodes?100:54,cell=side/cells;for(let j=0;j<cells;j++)for(let i=0;i<cells;i++){const x=(i+.5)/cells*2-1,y=(j+.5)/cells*2-1;if(S.shape==='circle'&&x*x+y*y>1)continue;sampleField(x,y);let a;if(nodes){a=Math.abs(fieldU)<.05?.24:0;ctx.fillStyle='rgba(255,224,143,'+a+')'}else{a=Math.min(.12,Math.abs(fieldU)*.095);ctx.fillStyle=fieldU>0?'rgba(88,194,255,'+a+')':'rgba(255,112,171,'+a+')'}if(a)ctx.fillRect(ox+i*cell,oy+j*cell,cell+1,cell+1)}}
-function render(){ctx.fillStyle='#060911';ctx.fillRect(0,0,W,H);if(S.field)drawField(false);if(S.nodes)drawField(true);ctx.save();ctx.strokeStyle='rgba(147,217,255,.42)';ctx.lineWidth=1;ctx.shadowColor='rgba(97,206,255,.38)';ctx.shadowBlur=13;ctx.beginPath();if(S.shape==='circle')ctx.arc(ox+side*.5,oy+side*.5,side*.5,0,TAU);else ctx.rect(ox,oy,side,side);ctx.stroke();ctx.restore();const r=N>30000?.75:1;ctx.fillStyle='rgba(231,247,255,.9)';for(let i=0;i<N;i++)ctx.fillRect(ox+(px[i]+1)*side*.5,oy+(py[i]+1)*side*.5,r,r);ctx.fillStyle='rgba(112,217,255,.2)';for(let i=0;i<N;i+=17)ctx.fillRect(ox+(px[i]+1)*side*.5-1,oy+(py[i]+1)*side*.5-1,2.5,2.5)}
-// Audio subsystem: smoothed spectrum + gated fundamental estimate, confidence and mode hysteresis.
-function stopAudio(){if(audio.element){audio.element.pause();audio.element.src=''}if(audio.osc){try{audio.osc.stop()}catch(e){}}if(audio.stream)audio.stream.getTracks().forEach(t=>t.stop());if(audio.ctx)audio.ctx.close().catch(()=>{});audio={ctx:null,analyser:null,data:null,timeData:null,source:null,gain:null,osc:null,element:null,stream:null,active:false,muted:false,amp:0,hz:S.frequency,smoothHz:S.frequency,stableHz:S.frequency,confidence:0,lastModeAt:0}}
-async function audioContext(){stopAudio();const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw Error('Web Audio is not supported in this browser.');audio.ctx=new AC();audio.analyser=audio.ctx.createAnalyser();audio.analyser.fftSize=2048;audio.analyser.smoothingTimeConstant=.72;audio.data=new Uint8Array(audio.analyser.frequencyBinCount);audio.timeData=new Float32Array(audio.analyser.fftSize);await audio.ctx.resume();audio.active=true}
-function attach(node,audible=false){node.connect(audio.analyser);if(audible)node.connect(audio.ctx.destination);audio.source=node}
-async function startTone(){try{await audioContext();const o=audio.ctx.createOscillator(),g=audio.ctx.createGain();o.type=ui.waveform.value;o.frequency.value=S.frequency;g.gain.value=+ui.volume.value/100*.22;o.connect(g);attach(g,true);o.start();audio.osc=o;audio.gain=g;S.source='tone';launch();syncUI();toast('Tone generator active')}catch(e){fail(e)}}
-async function startMic(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});await audioContext();audio.stream=stream;attach(audio.ctx.createMediaStreamSource(stream));S.source='microphone';launch();syncUI();toast('Listening to microphone')}catch(e){fail(e)}}
-async function startFile(file){try{await audioContext();const el=new Audio(URL.createObjectURL(file));el.loop=true;audio.element=el;attach(audio.ctx.createMediaElementSource(el),true);await el.play();S.source='audio file';launch();syncUI();toast('Audio file playing')}catch(e){fail(e)}}
-async function startTab(){try{const stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});stream.getVideoTracks().forEach(t=>t.stop());if(!stream.getAudioTracks().length)throw Error('No audio was shared. Choose a tab/window with audio and enable share audio.');await audioContext();audio.stream=stream;attach(audio.ctx.createMediaStreamSource(new MediaStream(stream.getAudioTracks())));S.source='captured audio';launch();syncUI();toast('Capturing shared audio')}catch(e){fail(e)}}
-function analyseAudio(){if(!audio.active)return;audio.analyser.getByteFrequencyData(audio.data);let sum=0,peak=0,pv=0;for(let i=2;i<audio.data.length;i++){const v=audio.data[i];sum+=v;if(v>pv){pv=v;peak=i}}const floor=Math.max(12,sum/audio.data.length*1.7);let fundamental=peak;for(let i=2;i<peak;i++){const v=audio.data[i];if(v>floor&&v>audio.data[i-1]&&v>=audio.data[i+1]&&v>pv*.32){fundamental=i;break}}const amp=clamp(sum/(audio.data.length*75),0,1);audio.amp+=(amp-audio.amp)*.08;const hz=fundamental*audio.ctx.sampleRate/audio.analyser.fftSize;audio.confidence=clamp((pv-floor)/130,0,1);if(hz>48&&hz<1800&&audio.confidence>.14){audio.smoothHz+=(hz-audio.smoothHz)*.1;if(Math.abs(audio.smoothHz-audio.stableHz)>4)audio.stableHz+=(audio.smoothHz-audio.stableHz)*.15}S.energy=clamp(.035+audio.amp*1.2,0,1);if(S.source!=='tone')S.frequency=audio.stableHz;const now=performance.now();if(S.source!=='tone'&&audio.confidence>.24&&now-audio.lastModeAt>650){const target=modeForHz(S.frequency);if(target.m!==S.m||target.n!==S.n){S.m=target.m;S.n=target.n;buildCircleTable();audio.lastModeAt=now;syncUI()}}}
-const modeCache={};
-function ensureRoots(){if(!rootsReady){buildRoots();rootsReady=true}}
-function modeTable(shape){
-  if(modeCache[shape])return modeCache[shape];
-  const list=[];
-  if(shape==='square'){for(let m=1;m<=9;m++)for(let n=1;n<=9;n++){if(m===n)continue;list.push({m,n,E:m*m+n*n})}}
-  else{ensureRoots();for(let m=0;m<=9;m++)for(let n=1;n<=9;n++){const b=roots[m][n-1];if(b)list.push({m,n,E:b*b})}}
-  const eMin=Math.min(...list.map(x=>x.E)),eMax=Math.max(...list.map(x=>x.E));
-  list.forEach(x=>{x.f=50+1550*(x.E-eMin)/(eMax-eMin)});
-  list.sort((a,b)=>a.f-b.f);
-  return modeCache[shape]={list,eMin,eMax};
+(() => {
+'use strict';
+
+addEventListener('error', e => {
+  const f = document.getElementById('fallback');
+  if (f && f.classList.contains('hidden')) {
+    f.classList.remove('hidden');
+    f.firstElementChild.innerHTML = '<b>Renderer error</b>' + String(e.message || 'Unknown WebGL error');
+  }
+});
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const $ = id => document.getElementById(id);
+
+/* ------------------------------------------------------------------ state */
+const S = {
+  shape: 'square', m: 3, n: 2, energy: .62, frequency: 157,
+  phase: 0, simTime: 0, paused: false, autoOrbit: true, pulse: 0,
+  source: 'silent'
+};
+const P = { step: 1/90, maxSteps: 4, transport: 15, drive: 7.4, maxSpeed: 1.9,
+  mobility: 1, damping: 4.4, friction: .42, agitation: .24, restitution: .26 };
+let N = 30000;
+let px, py, vx, vy, grain, seed;
+
+/* ------------------------------------------------------------------ field */
+let fieldU = 0, fieldX = 0, fieldY = 0;
+
+function squareField(x, y) {
+  // Pure square-plate eigenmode: cos(m*pi*x~) * cos(n*pi*y~)
+  const ax = Math.PI * (x + 1) * .5, ay = Math.PI * (y + 1) * .5, m = S.m, n = S.n;
+  const cmx = Math.cos(m * ax), cny = Math.cos(n * ay);
+  fieldU = cmx * cny;
+  fieldX = -.5 * m * Math.PI * Math.sin(m * ax) * cny;
+  fieldY = -.5 * n * Math.PI * cmx * Math.sin(n * ay);
 }
-function modeFreq(m,n,shape=S.shape){
-  const t=modeTable(shape),hit=t.list.find(x=>x.m===m&&x.n===n);
-  if(hit)return hit.f;
-  const E=shape==='square'?m*m+n*n:Math.pow(roots[m][n-1]||1,2);
-  return 50+1550*(E-t.eMin)/(t.eMax-t.eMin);
+
+function besselArray(x, max) {
+  if (Math.abs(x) < 1e-8) { const z = new Float64Array(max + 2); z[0] = 1; return z; }
+  const top = max + Math.ceil(Math.abs(x)) + 20, a = new Float64Array(top + 2);
+  a[top] = 1;
+  for (let k = top; k > 0; k--) a[k - 1] = 2 * k / x * a[k] - a[k + 1];
+  let norm = a[0];
+  for (let k = 2; k <= top; k += 2) norm += 2 * a[k];
+  for (let k = 0; k <= max + 1; k++) a[k] /= norm;
+  return a;
 }
-function modeForHz(hz){
-  const t=modeTable(S.shape),cur=t.list.find(x=>x.m===S.m&&x.n===S.n);
-  if(cur&&Math.abs(cur.f-hz)<=.5)return {m:cur.m,n:cur.n,d:Math.abs(cur.f-hz)};
-  let best=t.list[0],bd=Infinity;
-  for(const x of t.list){const d=Math.abs(x.f-hz);if(d<bd-1e-9){bd=d;best=x}}
-  return {m:best.m,n:best.n,d:bd};
+function bessel(m, x) { return besselArray(x, m)[m]; }
+
+const roots = Array.from({ length: 10 }, () => []);
+function buildRoots() {
+  for (let m = 0; m <= 9; m++) {
+    let oldX = .02, old = bessel(m, oldX);
+    for (let x = .05; roots[m].length < 9 && x < 55; x += .035) {
+      const now = bessel(m, x);
+      if (now * old <= 0) {
+        let lo = oldX, hi = x, fl = old;
+        for (let k = 0; k < 28; k++) {
+          const mid = (lo + hi) / 2, f = bessel(m, mid);
+          if (f * fl > 0) { lo = mid; fl = f; } else hi = mid;
+        }
+        roots[m].push((lo + hi) / 2);
+      }
+      oldX = x; old = now;
+    }
+  }
 }
-function resonance(){
-  const t=modeTable(S.shape),cur=t.list.find(x=>x.m===S.m&&x.n===S.n);
-  if(!cur)return 0;
-  let gap=Infinity;
-  for(const x of t.list){if(x===cur)continue;const d=Math.abs(x.f-cur.f);if(d>1e-6&&d<gap)gap=d}
-  return clamp(1-Math.abs(S.frequency-cur.f)/Math.max(2,gap/2),0,1);
+
+const radial = new Float32Array(1025), radialD = new Float32Array(1025);
+let tableM = -1, tableN = -1, rootsReady = false;
+function ensureRoots() { if (!rootsReady) { buildRoots(); rootsReady = true; } }
+
+function buildCircleTable() {
+  if (S.shape !== 'circle') return;
+  if (tableM === S.m && tableN === S.n) return;
+  ensureRoots();
+  tableM = S.m; tableN = S.n;
+  const beta = roots[S.m][S.n - 1] || roots[0][0], len = radial.length - 1;
+  for (let i = 0; i <= len; i++) {
+    const a = besselArray(beta * i / len, S.m + 1);
+    radial[i] = a[S.m];
+    radialD[i] = beta * .5 * ((S.m ? a[S.m - 1] : -a[1]) - a[S.m + 1]);
+  }
 }
-function syncModeFrequency(){
-  S.frequency=clamp(modeFreq(S.m,S.n,S.shape),50,1600);
-  ui.toneHz.value=S.frequency.toFixed(1);
-  if(audio.osc)audio.osc.frequency.setTargetAtTime(S.frequency,audio.ctx.currentTime,.018);
-  buildCircleTable();syncUI();
+
+function circleField(x, y) {
+  const r = Math.sqrt(x * x + y * y), f = Math.min(1024, r * 1024), i = f | 0, t = f - i;
+  const j = radial[i] + (radial[Math.min(1024, i + 1)] - radial[i]) * t;
+  const dr = radialD[i] + (radialD[Math.min(1024, i + 1)] - radialD[i]) * t;
+  const rr = Math.max(r, 1e-5), a = Math.atan2(y, x);
+  const co = Math.cos(S.m * a), si = Math.sin(S.m * a);
+  const ur = dr * co, ut = -S.m * j * si;
+  fieldU = j * co;
+  fieldX = ur * x / rr - ut * y / (rr * rr);
+  fieldY = ur * y / rr + ut * x / (rr * rr);
 }
-function setFrequency(v,mapMode=false){S.frequency=clamp(v,50,1600);ui.toneHz.value=S.frequency;if(audio.osc)audio.osc.frequency.setTargetAtTime(S.frequency,audio.ctx.currentTime,.018);if(mapMode){const mo=modeForHz(S.frequency);if(mo.m!==S.m||mo.n!==S.n){S.m=mo.m;S.n=mo.n;buildCircleTable()}}syncUI()}
-function updateSweep(dt){if(!S.sweep.running)return;S.sweep.t+=dt;const a=+ui.sweepStart.value,b=+ui.sweepEnd.value,d=Math.max(1,+ui.sweepSecs.value),u=(S.sweep.t%d)/d,t=S.sweep.reverse?1-u:u;setFrequency(a+(b-a)*t,true);if(S.source!=='tone'&&!audio.active)S.source='sweep'}
-function setView(view){S.view=view;document.body.dataset.view=view;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='learn'){S.learn=true;S.field=true;S.nodes=true;ui.field.classList.add('active');ui.nodes.classList.add('active');ui.learnCallout.classList.add('show');showModal('Learn: why the pattern forms',`<p><b>1 · Standing wave.</b> The plate has a spatial displacement field <i>U(x,y)</i>. A pure square mode is an eigenmode; changing blend creates an explicit experimental superposition.</p><p><b>2 · Fast vibration.</b> A zero-mean, local response makes grains visibly active where the surface moves.</p><p><b>3 · Slow transport.</b> The reduced-order average force <i>−∇(U²)</i> pushes grains away from antinodes toward genuine nodes. Damping, friction, inertia, response variation, and boundaries shape the migration.</p><p><b>Mode affinity</b> is normalized for this interactive model, not a material-calibrated resonance measurement.</p>`)}else{S.learn=false;ui.learnCallout.classList.remove('show')}if(view==='discover')discover()}
-function scoreCandidate(c){const old=[S.shape,S.m,S.n,S.mix];S.shape=c.shape;S.m=c.m;S.n=c.n;S.mix=c.mix;buildCircleTable();let near=0,energy=0,symmetry=0,count=0;for(let iy=0;iy<23;iy++)for(let ix=0;ix<23;ix++){const x=-.94+ix*.0855,y=-.94+iy*.0855;if(c.shape==='circle'&&x*x+y*y>.91)continue;sampleField(x,y);const u=fieldU;energy+=u*u;near+=Math.abs(u)<.07;sampleField(-x,y);symmetry+=1-Math.min(1,Math.abs(Math.abs(u)-Math.abs(fieldU)));count++}S.shape=old[0];S.m=old[1];S.n=old[2];S.mix=old[3];buildCircleTable();const density=near/count,variance=Math.min(1,energy/count*.65),balance=symmetry/count;return balance*.46+variance*.34+(1-Math.min(1,Math.abs(density-.15)*5))*.2}
-function discover(){const candidates=[];for(const shape of ['square','circle'])for(let m=shape==='circle'?0:1;m<=7;m++)for(let n=1;n<=6;n++){if(shape==='square'&&m===n)continue;for(const mix of shape==='square'?[.55,.78,1]:[1])candidates.push({shape,m,n,mix,energy:.48+((m*3+n*5)%4)*.07})}const ranked=candidates.map(c=>({c,score:scoreCandidate(c)})).sort((a,b)=>b.score-a.score);S.discoverIndex=((S.discoverIndex||0)+1)%Math.min(18,ranked.length);const p=ranked[S.discoverIndex].c;S.shape=p.shape;S.m=p.m;S.n=p.n;S.mix=p.mix;S.energy=p.energy;ui.shape.value=S.shape;ui.mix.value=S.mix*100;ui.energy.value=S.energy*100;syncModeFrequency();const names=['Silver Lattice','Quiet Orbit','Glass Butterfly','Polar Bloom','Blue Crystal','Balanced Drift'];S.patternName=names[S.discoverIndex%names.length];Events.emit('pattern_discovered',{...p,score:ranked[S.discoverIndex].score});toast(S.patternName+' found')}
-function toggleDemo(){S.demo.running=!S.demo.running;S.demo.t=0;$('demoRun').classList.toggle('active',S.demo.running);$('demoRun').textContent=S.demo.running?'Stop demo':'Demo mode';toast(S.demo.running?'Demo sequence started':'Demo sequence stopped')}
-function updateDemo(dt){if(!S.demo.running)return;S.demo.t+=dt;if(S.demo.t<7)return;S.demo.t=0;const reel=['butterfly','crystal','flower','radial'];preset(reel[S.demo.index++%reel.length]);S.sweep.running=S.demo.index%2===0;ui.sweepRun.textContent=S.sweep.running?'Pause sweep':'Start sweep'}
-function syncUI(){if(S.shape==='square'){if(S.m<1)S.m=1;if(S.m===S.n)S.n=S.n%9+1}ui.m.min=S.shape==='circle'?0:1;ui.m.value=S.m;ui.n.value=S.n;ui.mOut.textContent=S.m;ui.nOut.textContent=S.n;ui.mixOut.textContent=S.mix.toFixed(2);ui.energyOut.textContent=Math.round(S.energy*100)+'%';ui.countOut.textContent=N>=1000?(N/1000)+'k':N;ui.speedOut.textContent=S.speed.toFixed(2)+'×';ui.toneHzOut.textContent=Math.round(S.frequency)+' Hz';ui.volumeOut.textContent=ui.volume.value+'%';ui.mobilityOut.textContent=P.mobility.toFixed(2);ui.dampingOut.textContent=P.damping.toFixed(1);ui.frictionOut.textContent=P.friction.toFixed(2);ui.agitationOut.textContent=P.agitation.toFixed(2);ui.restitutionOut.textContent=P.restitution.toFixed(2);const res=resonance();S.resonance=res;ui.sourceReadout.textContent=S.source;ui.modeReadout.textContent=(S.shape==='circle'&&S.m===0?'radial ':'')+S.m+' × '+S.n;ui.freqReadout.textContent=Math.round(S.frequency)+' Hz';ui.resReadout.textContent=Math.round(res*100)+'%';ui.resMeter.style.width=ui.hudRes.style.width=Math.round(res*100)+'%';ui.hudHz.textContent=Math.round(S.frequency);ui.hudMode.textContent=(S.shape==='circle'&&S.m===0?'radial ':'')+S.m+' × '+S.n;ui.sourceStatus.textContent=S.source==='manual'?'Manual field control':S.source[0].toUpperCase()+S.source.slice(1)+' · smoothing '+Math.round(audio.confidence*100)+'%';hashState()}
-function updateControls(){if(!audio.active&&!S.sweep.running){S.energy=+ui.energy.value/100;S.frequency=+ui.toneHz.value}S.speed=+ui.speed.value/100;P.mobility=+ui.mobility.value/100;P.damping=+ui.damping.value/10;P.friction=+ui.friction.value/100;P.agitation=+ui.agitation.value/100;P.restitution=+ui.restitution.value/100;syncUI()}
-function seedAdvanced(){ui.mobility.value=Math.round(P.mobility*100);ui.damping.value=Math.round(P.damping*10);ui.friction.value=Math.round(P.friction*100);ui.agitation.value=Math.round(P.agitation*100);ui.restitution.value=Math.round(P.restitution*100)}
-function launch(){ui.welcome.classList.add('hidden');if(S.running)return;S.running=true;S.last=performance.now();requestAnimationFrame(loop)}
-function loop(now){if(!S.last)S.last=now;let elapsed=Math.min(.08,(now-S.last)/1000);S.last=now;S.fps+=(1/Math.max(.001,elapsed)-S.fps)*.07;if(!S.paused){if(audio.active)analyseAudio();else updateControls();updateSweep(elapsed);updateDemo(elapsed);S.acc+=elapsed*S.speed;let steps=0,begin=performance.now();while(S.acc>=P.step&&steps<P.maxSteps){S.phase=(S.phase+TAU*(3.5+S.frequency/115)*P.step)%TAU;simulate(P.step);S.acc-=P.step;steps++}S.physicsMs+=(performance.now()-begin-S.physicsMs)*.12;if(S.acc>=P.step){S.acc=0;S.dropped++}}S.renderSkip=N>32000&&S.fps<45?2:1;if(++S.renderCounter%S.renderSkip===0){const begin=performance.now();render();S.renderMs+=(performance.now()-begin-S.renderMs)*.12}if(++S.frames%12===0&&ui.debug.classList.contains('open'))debug();requestAnimationFrame(loop)}
-function debug(){let speed=0,bad=0;for(let i=0;i<N;i+=23){speed+=Math.sqrt(vx[i]*vx[i]+vy[i]*vy[i]);if(!Number.isFinite(px[i]+py[i]))bad++}ui.debug.textContent=`PHYSICS DEBUG\nFPS             ${S.fps.toFixed(0)}\nparticles       ${N.toLocaleString()}\nfixed timestep  ${(P.step*1000).toFixed(2)} ms\nphysics / render ${S.physicsMs.toFixed(2)} / ${S.renderMs.toFixed(2)} ms\navg speed       ${(speed/Math.ceil(N/23)).toFixed(3)}\nmode / shape    ${S.m}×${S.n} ${S.shape}\nmode affinity   ${Math.round(S.resonance*100)}% (normalized)\nfrequency       ${Math.round(S.frequency)} Hz\naudio confidence ${Math.round(audio.confidence*100)}%\ndropped steps   ${S.dropped}\nrenderer        Canvas 2D / adaptive draw\nNaN sample      ${bad}`}
-function toast(msg){ui.toast.textContent=msg;ui.toast.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>ui.toast.classList.remove('show'),2200)}function fail(e){ui.sourceStatus.textContent=e.message||String(e);ui.sourceStatus.classList.add('error');toast('Audio source could not start')}
-function showModal(title,body){ui.dialog.innerHTML=`<button id="closeModal" class="icon" style="float:right">×</button><h2>${title}</h2>${body}<div class="actions"><button id="modalOK" class="primary">Done</button></div>`;ui.modal.classList.add('show');ui.dialog.querySelector('#closeModal').onclick=ui.dialog.querySelector('#modalOK').onclick=()=>ui.modal.classList.remove('show')}
-function exportImage(card=false,transparent=false,scale=2){const out=document.createElement('canvas'),s=Math.min(4096,Math.round(side*scale));out.width=out.height=s;const c=out.getContext('2d');if(!transparent){c.fillStyle='#070b13';c.fillRect(0,0,s,s)}const sc=s/2;if(!transparent){c.strokeStyle='rgba(138,221,255,.65)';c.lineWidth=Math.max(1,s/900);c.beginPath();if(S.shape==='circle')c.arc(sc,sc,sc-1,0,TAU);else c.rect(1,1,s-2,s-2);c.stroke()}c.fillStyle='#edf9ff';const dot=Math.max(1,s/1000);for(let i=0;i<N;i++)c.fillRect((px[i]+1)*sc,(py[i]+1)*sc,dot,dot);let final=out;if(card){final=document.createElement('canvas');final.width=s;final.height=Math.round(s*1.18);const k=final.getContext('2d');k.fillStyle='#08101a';k.fillRect(0,0,final.width,final.height);k.drawImage(out,0,0);k.fillStyle='#bceeff';k.font=`600 ${Math.round(s*.04)}px system-ui`;k.fillText('CYMATICS LAB',s*.07,s*1.07);k.fillStyle='#7f9bab';k.font=`${Math.round(s*.023)}px system-ui`;k.fillText(`${S.shape.toUpperCase()} PLATE  ·  MODE ${S.m} × ${S.n}  ·  ${Math.round(S.frequency)} HZ`,s*.07,s*1.12)}const a=document.createElement('a');a.download=`cymatics-${S.shape}-${S.m}x${S.n}-${Math.round(S.frequency)}hz${card?'-card':''}.png`;a.href=final.toDataURL('image/png');a.click();Events.emit('pattern_exported',{card,transparent,scale,particles:N});toast(card?'Pattern card exported':'PNG exported')}
-function showExport(){showModal('Export pattern',`<p>All export formats are unlocked in this demo build. Pro gating is enforced through <code>Entitlement.require()</code> when an account service is connected.</p><div class="toolrow"><button id="export1" class="primary">PNG</button><button id="export2">2× PNG · Pro</button><button id="export4">4× PNG · Pro</button><button id="exportTransparent">Transparent · Pro</button><button id="exportCard">Pattern card · Pro</button></div>`);setTimeout(()=>{$('export1').onclick=()=>exportImage(false,false,1);$('export2').onclick=()=>Entitlement.require('high_res_export')&&exportImage(false,false,2);$('export4').onclick=()=>Entitlement.require('high_res_export')&&exportImage(false,false,4);$('exportTransparent').onclick=()=>Entitlement.require('transparent_export')&&exportImage(false,true,3);$('exportCard').onclick=()=>Entitlement.require('pattern_cards')&&exportImage(true,false,2)},0)}
-function patternThumbnail(){const c=document.createElement('canvas');c.width=c.height=96;const k=c.getContext('2d');k.fillStyle='#07101a';k.fillRect(0,0,96,96);k.fillStyle='#dff7ff';for(let i=0;i<N;i+=Math.max(1,Math.ceil(N/3200)))k.fillRect((px[i]+1)*48,(py[i]+1)*48,1,1);return c.toDataURL('image/png')}
-function readPatterns(){try{const a=JSON.parse(localStorage.getItem('cymatics-patterns')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}function writePatterns(a){try{localStorage.setItem('cymatics-patterns',JSON.stringify(a));return true}catch(e){return false}}function escHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function savePattern(){const all=readPatterns(),suggested=S.patternName||['Silver Lattice','Quiet Orbit','Glass Butterfly','Polar Bloom'][((S.m+S.n)*3)%4],name=prompt('Name this pattern',suggested);if(name===null)return;all.unshift({id:crypto.randomUUID?.()||Date.now().toString(),name,shape:S.shape,m:S.m,n:S.n,mix:S.mix,frequency:S.frequency,energy:S.energy,count:N,thumbnail:patternThumbnail(),at:Date.now()});if(!writePatterns(all.slice(0,40))){toast('Could not save: local storage is unavailable');return}Events.emit('pattern_saved',{shape:S.shape,m:S.m,n:S.n});toast('Pattern saved locally')}
-function showLibrary(){const all=readPatterns();const cards=all.length?all.map((p,i)=>`<div class="card"><span class="thumb" ${/^data:image\/png;base64,/.test(p.thumbnail||'')?`style="background:#07101a center/cover url('${p.thumbnail}')"`:''}></span><div class="name">${escHtml(p.name)}<small>${p.shape} · ${p.m} × ${p.n} · ${Math.round(p.frequency)} Hz</small></div><button data-load="${i}">Load</button><button class="danger" data-delete="${i}">×</button></div>`).join(''):'<p>Your saved patterns will appear here.</p>';showModal('Pattern library',`<div class="toolrow"><button id="savePattern" class="primary">Save current pattern</button><button id="shareURL">Copy share link</button></div><div class="cards" style="margin-top:12px">${cards}</div>`);setTimeout(()=>{const list=readPatterns();$('savePattern').onclick=savePattern;$('shareURL').onclick=()=>navigator.clipboard?.writeText(location.href).then(()=>toast('Share link copied')).catch(()=>toast('Copy this page URL to share'));ui.dialog.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{const p=list[+b.dataset.load];S.shape=p.shape;S.m=p.m;S.n=p.n;S.mix=p.mix;S.frequency=p.frequency;S.energy=p.energy;ui.shape.value=S.shape;ui.m.value=S.m;ui.n.value=S.n;ui.mix.value=S.mix*100;ui.energy.value=S.energy*100;syncModeFrequency();ui.modal.classList.remove('show');toast('Pattern loaded')});ui.dialog.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.delete,1);writePatterns(list);showLibrary()})},0)}
-let recorder=null,recChunks=[],recordStart=0;function record(){if(recorder?.state==='recording'){recorder.stop();return}if(!window.MediaRecorder){toast('Recording is not supported in this browser');return}try{const stream=ui.canvas.captureStream(60);recChunks=[];recorder=new MediaRecorder(stream,{mimeType:MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm'});recorder.ondataavailable=e=>e.data.size&&recChunks.push(e.data);recorder.onstop=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(recChunks,{type:'video/webm'}));a.download='cymatics-recording.webm';a.click();URL.revokeObjectURL(a.href);ui.record.innerHTML='● Record';toast('Recording exported')};recorder.start(300);recordStart=performance.now();ui.record.innerHTML='<span class="record-dot">●</span> Stop';toast('Recording started')}catch(e){recorder=null;ui.record.innerHTML='● Record';toast('Recording could not start')}}
-function preset(name){const p={butterfly:{shape:'square',m:3,n:2,mix:1,energy:.68},crystal:{shape:'square',m:5,n:3,mix:.86,energy:.72},flower:{shape:'circle',m:5,n:2,mix:1,energy:.64},radial:{shape:'circle',m:0,n:4,mix:1,energy:.58}}[name];S.shape=p.shape;S.m=p.m;S.n=p.n;S.mix=p.mix;S.energy=p.energy;ui.shape.value=S.shape;ui.m.value=S.m;ui.n.value=S.n;ui.mix.value=S.mix*100;ui.energy.value=S.energy*100;syncModeFrequency();Events.emit('preset_selected',{name});toast(name[0].toUpperCase()+name.slice(1)+' preset')}
-function bind(){ui.shape.onchange=()=>{S.shape=ui.shape.value;if(S.shape==='square'&&S.m===0)S.m=1;ui.mixField.classList.toggle('hidden',S.shape==='circle');syncModeFrequency()};ui.m.oninput=()=>{S.m=+ui.m.value;syncModeFrequency()};ui.n.oninput=()=>{S.n=+ui.n.value;syncModeFrequency()};ui.mix.oninput=()=>{S.mix=+ui.mix.value/100;syncUI()};ui.energy.oninput=updateControls;ui.count.onchange=()=>{const next=+ui.count.value;if(next>12000&&!Entitlement.require('high_particle_count')){ui.count.value=N;return}allocate(next)};ui.speed.oninput=updateControls;ui.toneHz.oninput=()=>setFrequency(+ui.toneHz.value,true);ui.volume.oninput=()=>{if(audio.gain&&!audio.muted)audio.gain.gain.setTargetAtTime(+ui.volume.value/100*.22,audio.ctx.currentTime,.02);syncUI()};ui.waveform.onchange=()=>{if(audio.osc)audio.osc.type=ui.waveform.value};document.querySelectorAll('.hzPreset').forEach(b=>b.onclick=()=>setFrequency(+b.dataset.hz,true));document.querySelectorAll('[data-source]').forEach(b=>b.onclick=()=>source(b.dataset.source));document.querySelectorAll('[data-welcome]').forEach(b=>b.onclick=()=>source(b.dataset.welcome));ui.audioFile.onchange=()=>ui.audioFile.files[0]&&startFile(ui.audioFile.files[0]);$('mute').onclick=()=>{audio.muted=!audio.muted;if(audio.gain)audio.gain.gain.setTargetAtTime(audio.muted?0:+ui.volume.value/100*.22,audio.ctx.currentTime,.02);$('mute').textContent=audio.muted?'Unmute':'Mute'};$('reset').onclick=resetParticles;$('burst').onclick=()=>burst();$('tapMode').onclick=()=>{S.tap=!S.tap;$('tapMode').textContent='Tap: '+(S.tap?'on':'off')};ui.pause.onclick=()=>{S.paused=!S.paused;ui.pause.textContent=S.paused?'▶':'Ⅱ';ui.pause.setAttribute('aria-label',S.paused?'Resume simulation':'Pause simulation');toast(S.paused?'Simulation paused':'Simulation resumed')};ui.field.onclick=()=>{S.field=!S.field;ui.field.classList.toggle('active',S.field)};ui.nodes.onclick=()=>{S.nodes=!S.nodes;ui.nodes.classList.toggle('active',S.nodes)};ui.learn.onclick=()=>setView('learn');ui.sweep.onclick=()=>{if(!Entitlement.require('sweep_lab'))return;S.sweep.open=!S.sweep.open;ui.sweepPanel.style.display=S.sweep.open?'block':'none';ui.sweep.classList.toggle('active',S.sweep.open)};[ui.sweepStart,ui.sweepEnd].forEach(x=>x.oninput=()=>{ui.sweepStartOut.textContent=ui.sweepStart.value+' Hz';ui.sweepEndOut.textContent=ui.sweepEnd.value+' Hz'});ui.sweepSecs.oninput=()=>ui.sweepSecsOut.textContent=ui.sweepSecs.value+' s';ui.sweepRun.onclick=()=>{if(!Entitlement.require('sweep_lab'))return;S.sweep.running=!S.sweep.running;S.sweep.t=0;ui.sweepRun.textContent=S.sweep.running?'Pause sweep':'Start sweep';if(S.sweep.running&&!audio.active)launch()};ui.sweepReverse.onclick=()=>{S.sweep.reverse=!S.sweep.reverse;ui.sweepReverse.classList.toggle('active',S.sweep.reverse)};ui.advancedToggle.onclick=()=>{if(Entitlement.require('advanced_physics'))ui.advanced.classList.toggle('open')};[ui.mobility,ui.damping,ui.friction,ui.agitation,ui.restitution].forEach(x=>x.oninput=updateControls);document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>preset(b.dataset.preset));$('discoverRun').onclick=discover;$('demoRun').onclick=toggleDemo;document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));ui.debugToggle.onclick=()=>ui.debug.classList.toggle('open');$('shot').onclick=showExport;$('library').onclick=showLibrary;$('help').onclick=()=>showModal('Controls & scientific note',`<p><b>Drag or tap</b> the plate to add a local disturbance. <b>Space</b> pauses, <b>R</b> resets, <b>F</b> toggles the field, <b>N</b> toggles nodes, and <b>D</b> opens debug.</p><p>This is a <b>physics-inspired reduced-order model</b>, not a material-calibrated lab measurement. “Mode affinity” is normalized for exploration. Mode frequencies are ordered by the plate eigenvalue — m² + n² on the square plate, β² from the Bessel zeros on the circle — and scaled across the 50–1600 Hz drive band, so absolute Hz are illustrative while the ordering, degenerate pairs, and mode spacing follow the plate. On the square plate, blend 0 is the pure m × n product mode, blend 1 the antisymmetric combination, and blend −1 the symmetric one.</p>`);ui.record.onclick=()=>{if(Entitlement.require('recording'))record()};let dragging=false;const disturb=e=>{if(!S.tap)return;const r=ui.canvas.getBoundingClientRect(),x=(e.clientX-r.left-ox)/side*2-1,y=(e.clientY-r.top-oy)/side*2-1;if(Math.abs(x)<=1&&Math.abs(y)<=1&&(S.shape==='square'||x*x+y*y<=1))burst(x,y,.16)};ui.canvas.addEventListener('pointerdown',e=>{dragging=true;ui.canvas.setPointerCapture?.(e.pointerId);disturb(e)});ui.canvas.addEventListener('pointermove',e=>{if(dragging&&e.buttons)disturb(e)});ui.canvas.addEventListener('pointerup',()=>dragging=false);ui.canvas.addEventListener('pointercancel',()=>dragging=false);addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName))return;const k=e.key.toLowerCase();if(k==='escape'){ui.modal.classList.remove('show');return}if(k===' '){e.preventDefault();ui.pause.click()}else if(k==='r')resetParticles();else if(k==='f')ui.field.click();else if(k==='n')ui.nodes.click();else if(k==='d')ui.debugToggle.click();else if(k==='?')$('help').click()});addEventListener('click',e=>{const b=e.target.closest?.('button');if(b)b.blur()});addEventListener('resize',resize)}
-async function source(kind){ui.welcome.classList.add('hidden');Events.emit('source_selected',{source:kind});if(kind==='manual'){stopAudio();S.source='manual';launch();syncUI()}else if(kind==='tone')await startTone();else if(kind==='mic')await startMic();else if(kind==='file')ui.audioFile.click();else if(kind==='tab')await startTab()}
-loadState();if(N>12000&&!Entitlement.has('high_particle_count')){N=12000;ui.count.value=N}buildCircleTable();allocate(N);syncModeFrequency();seedAdvanced();resize();bind();syncUI();render();
+function sampleField(x, y) { if (S.shape === 'circle') circleField(x, y); else squareField(x, y); }
+
+/* --------------------------------------------- eigenmode <-> frequency map */
+const modeCache = {};
+function modeTable(shape) {
+  if (modeCache[shape]) return modeCache[shape];
+  const list = [];
+  if (shape === 'square') {
+    for (let m = 1; m <= 9; m++) for (let n = 1; n <= 9; n++) list.push({ m, n, E: m * m + n * n });
+  } else {
+    ensureRoots();
+    for (let m = 0; m <= 9; m++) for (let n = 1; n <= 9; n++) {
+      const b = roots[m][n - 1];
+      if (b) list.push({ m, n, E: b * b });
+    }
+  }
+  const eMin = Math.min(...list.map(x => x.E)), eMax = Math.max(...list.map(x => x.E));
+  list.forEach(x => { x.f = 50 + 1550 * (x.E - eMin) / (eMax - eMin); });
+  list.sort((a, b) => a.f - b.f);
+  return modeCache[shape] = { list, eMin, eMax };
+}
+function modeFreq(m, n, shape = S.shape) {
+  const t = modeTable(shape), hit = t.list.find(x => x.m === m && x.n === n);
+  if (hit) return hit.f;
+  const E = shape === 'square' ? m * m + n * n : Math.pow(roots[m][n - 1] || 1, 2);
+  return 50 + 1550 * (E - t.eMin) / (t.eMax - t.eMin);
+}
+function modeForHz(hz) {
+  const t = modeTable(S.shape), cur = t.list.find(x => x.m === S.m && x.n === S.n);
+  if (cur && Math.abs(cur.f - hz) <= .35) return { m: cur.m, n: cur.n };
+  let best = t.list[0], bd = Infinity;
+  for (const x of t.list) { const d = Math.abs(x.f - hz); if (d < bd - 1e-9) { bd = d; best = x; } }
+  return { m: best.m, n: best.n };
+}
+function resonance() {
+  const t = modeTable(S.shape), cur = t.list.find(x => x.m === S.m && x.n === S.n);
+  if (!cur) return 0;
+  let gap = Infinity;
+  for (const x of t.list) {
+    if (x === cur) continue;
+    const d = Math.abs(x.f - cur.f);
+    if (d > 1e-6 && d < gap) gap = d;
+  }
+  return clamp(1 - Math.abs(S.frequency - cur.f) / Math.max(2, gap / 2), 0, 1);
+}
+
+/* --------------------------------------------------------------- particles */
+function allocate(n) {
+  N = n;
+  px = new Float32Array(n); py = new Float32Array(n);
+  vx = new Float32Array(n); vy = new Float32Array(n);
+  grain = new Float32Array(n); seed = new Float32Array(n);
+  resetParticles();
+  syncParticleBuffer(true);
+}
+function resetParticles() {
+  for (let i = 0; i < N; i++) {
+    let x, y;
+    if (S.shape === 'circle') { const r = Math.sqrt(Math.random()), a = Math.random() * TAU; x = r * Math.cos(a); y = r * Math.sin(a); }
+    else { x = Math.random() * 2 - 1; y = Math.random() * 2 - 1; }
+    px[i] = x; py[i] = y; vx[i] = vy[i] = 0;
+    grain[i] = .72 + Math.random() * .56;
+    seed[i] = Math.random() * TAU;
+  }
+  S.simTime = 0;
+}
+function holeRadius() { return (S.shape === 'circle' && S.m > 0) ? .058 : 0; }
+function bound(i, x, y) {
+  let ax = vx[i], ay = vy[i];
+  const e = P.restitution, hole = holeRadius();
+  if (S.shape === 'circle') {
+    const r2 = x * x + y * y;
+    if (r2 > 1) {
+      const r = Math.sqrt(r2), nx = x / r, ny = y / r, dot = ax * nx + ay * ny;
+      x = nx * .998; y = ny * .998;
+      ax -= (1 + e) * dot * nx; ay -= (1 + e) * dot * ny;
+    } else if (hole && r2 < hole * hole) {
+      const r = Math.sqrt(r2) || 1e-6, nx = x / r, ny = y / r, dot = ax * nx + ay * ny;
+      x = nx * hole; y = ny * hole;
+      if (dot < 0) { ax -= (1 + e) * dot * nx; ay -= (1 + e) * dot * ny; }
+    }
+  } else {
+    if (x < -1) { x = -1; ax = Math.abs(ax) * e; } else if (x > 1) { x = 1; ax = -Math.abs(ax) * e; }
+    if (y < -1) { y = -1; ay = Math.abs(ay) * e; } else if (y > 1) { y = 1; ay = -Math.abs(ay) * e; }
+  }
+  px[i] = x; py[i] = y; vx[i] = ax; vy[i] = ay;
+}
+function simulate(dt) {
+  const amp = Math.max(.018, S.energy), phase = Math.sin(S.phase), phase2 = Math.cos(S.phase * .61);
+  const damp = Math.exp(-P.damping * dt), mob = P.mobility;
+  const drift = P.transport * Math.pow(amp, 1.15) * mob;
+  const shake = P.drive * amp, ag = P.agitation * amp, fric = P.friction * dt;
+  for (let i = 0; i < N; i++) {
+    let x = px[i], y = py[i];
+    sampleField(x, y);
+    const u = fieldU, gx = fieldX, gy = fieldY, g = grain[i];
+    const jitter = Math.sin(S.simTime * 19.7 + seed[i]) * Math.sin(S.simTime * 7.1 + seed[i] * 1.7);
+    let ax = (-2 * drift * u * gx) + (shake * phase * g * u * gx * .18) + (ag * jitter * phase2 * (gy + gx * .17));
+    let ay = (-2 * drift * u * gy) + (shake * phase * g * u * gy * .18) + (ag * jitter * phase2 * (-gx + gy * .17));
+    let ux = (vx[i] + ax * dt) * damp, uy = (vy[i] + ay * dt) * damp;
+    const sp = Math.sqrt(ux * ux + uy * uy);
+    if (sp > 1e-5) {
+      const loss = Math.max(0, 1 - fric * Math.min(1, sp / .24));
+      ux *= loss; uy *= loss;
+    }
+    if (sp > P.maxSpeed) { const k = P.maxSpeed / sp; ux *= k; uy *= k; }
+    vx[i] = ux; vy[i] = uy;
+    x += ux * dt; y += uy * dt;
+    if (!Number.isFinite(x + y + ux + uy)) {
+      x = ((i * .618) % 2) - 1; y = ((i * .414) % 2) - 1; vx[i] = vy[i] = 0;
+    }
+    bound(i, x, y);
+  }
+  S.simTime += dt;
+}
+
+/* --------------------------------------------------------------- WebGL init */
+const canvas = $('gl');
+const gl = canvas.getContext('webgl', { alpha: false, antialias: true, depth: true, premultipliedAlpha: false, powerPreference: 'high-performance' })
+        || canvas.getContext('experimental-webgl');
+if (!gl) { $('fallback').classList.remove('hidden'); return; }
+
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {}, a = {};
+  const nu = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < nu; i++) { const info = gl.getActiveUniform(p, i); u[info.name] = gl.getUniformLocation(p, info.name); }
+  const na = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
+  for (let i = 0; i < na; i++) { const info = gl.getActiveAttrib(p, i); a[info.name] = gl.getAttribLocation(p, info.name); }
+  return { p, u, a };
+}
+
+/* --------------------------------------------------------------- shaders */
+const bg = program(
+`attribute vec2 aClip;
+void main(){ gl_Position = vec4(aClip, 0.0, 1.0); }`,
+`precision highp float;
+uniform vec2 uRes; uniform float uEnergy, uPulse, uTime;
+void main(){
+  vec2 p = gl_FragCoord.xy / uRes * 2.0 - 1.0;
+  p.x *= uRes.x / uRes.y;
+  float r = length(p);
+  vec3 top = vec3(0.003,0.006,0.013);
+  vec3 bot = vec3(0.010,0.024,0.042);
+  vec3 col = mix(bot, top, smoothstep(-1.0, 1.1, p.y));
+  float glow = exp(-r*r*1.35);
+  col += vec3(0.020,0.105,0.155) * glow * (0.35 + uEnergy*0.85 + uPulse*0.9);
+  // sparse stars
+  vec2 cell = floor(gl_FragCoord.xy / 2.0);
+  float h = fract(sin(dot(cell, vec2(12.9898,78.233))) * 43758.5453);
+  col += vec3(0.35,0.62,0.78) * step(0.99935, h) * (0.22 + uEnergy*0.55);
+  col *= 1.0 - 0.42 * smoothstep(0.55, 1.55, r);
+  gl_FragColor = vec4(col, 1.0);
+}`);
+
+const ug = program(
+`attribute vec2 aPos;
+uniform mat4 uMVP;
+varying vec2 vP;
+void main(){ vP = aPos; gl_Position = uMVP * vec4(aPos, -0.16, 1.0); }`,
+`precision highp float;
+uniform float uEnergy, uPulse;
+varying vec2 vP;
+void main(){
+  float r = length(vP);
+  float a = exp(-r*r*3.4);
+  vec3 c = mix(vec3(0.10,0.62,0.86), vec3(1.0,0.72,0.36), 0.22);
+  gl_FragColor = vec4(c * (0.30 + uEnergy*1.15 + uPulse*1.5), a*0.6);
+}`);
+
+const plate = program(
+`attribute vec2 aPos;
+uniform mat4 uMVP;
+uniform sampler2D uField;
+uniform float uAmp, uPhase;
+varying vec2 vP; varying vec2 vUV; varying float vU;
+void main(){
+  vP = aPos; vUV = aPos*0.5 + 0.5;
+  float u = texture2D(uField, vUV).r * 2.0 - 1.0;
+  vU = u;
+  gl_Position = uMVP * vec4(aPos, u*uAmp*sin(uPhase), 1.0);
+}`,
+`precision highp float;
+uniform sampler2D uField;
+uniform float uAmp, uPhase, uShape, uEnergy, uPulse, uHole;
+uniform vec3 uCam;
+varying vec2 vP; varying vec2 vUV; varying float vU;
+void main(){
+  vec2 p = vP;
+  if (uShape > 0.5 && dot(p,p) > 1.0) discard;
+  if (uHole > 0.0 && dot(p,p) < uHole*uHole) discard;
+  float e = 2.5/384.0;
+  float uL = texture2D(uField, vUV + vec2(-e,0.0)).r*2.0 - 1.0;
+  float uR = texture2D(uField, vUV + vec2( e,0.0)).r*2.0 - 1.0;
+  float uD = texture2D(uField, vUV + vec2(0.0,-e)).r*2.0 - 1.0;
+  float uU = texture2D(uField, vUV + vec2(0.0, e)).r*2.0 - 1.0;
+  float s = uAmp * sin(uPhase);
+  float dzdx = (uR-uL)/(4.0*e) * s;
+  float dzdy = (uU-uD)/(4.0*e) * s;
+  vec3 n = normalize(vec3(-dzdx, -dzdy, 1.0));
+  vec3 pos = vec3(p, vU*s);
+  vec3 V = normalize(uCam - pos);
+  vec3 L = normalize(vec3(0.42, 0.55, 1.0));
+  float diff = max(dot(n, L), 0.0);
+  float fres = pow(1.0 - max(dot(n, V), 0.0), 3.0);
+  float nodal = smoothstep(0.13, 0.0, abs(vU));
+  vec3 col = vec3(0.014,0.030,0.047) * (0.55 + 0.85*diff);
+  col += vec3(0.05,0.34,0.46) * nodal * (0.18 + uEnergy*0.55 + uPulse*0.5);
+  col += vec3(0.10,0.44,0.60) * fres * 0.55;
+  float rim = uShape > 0.5 ? smoothstep(0.945, 1.0, length(p)) : smoothstep(0.945, 1.0, max(abs(p.x),abs(p.y)));
+  col += vec3(0.14,0.62,0.82) * rim * 0.65;
+  if (uHole > 0.0) {
+    float hr = smoothstep(uHole*1.30, uHole*1.01, length(p));
+    col += vec3(0.12,0.55,0.72) * hr * 0.55;
+  }
+  vec2 g = abs(fract(p*7.0) - 0.5);
+  float grid = smoothstep(0.472, 0.497, max(g.x, g.y));
+  col += vec3(0.028,0.10,0.14) * grid * 0.55;
+  gl_FragColor = vec4(col, 1.0);
+}`);
+
+const sand = program(
+`attribute vec3 aPos;
+uniform mat4 uMVP;
+uniform sampler2D uField;
+uniform float uAmp, uPhase, uPointScale, uGrainSize, uGlow;
+varying float vH;
+void main(){
+  vec2 uv = aPos.xy*0.5 + 0.5;
+  float u = texture2D(uField, uv).r*2.0 - 1.0;
+  float z = u*uAmp*sin(uPhase) + 0.0035 + aPos.z*0.0025;
+  vec4 clip = uMVP * vec4(aPos.xy, z, 1.0);
+  gl_Position = clip;
+  gl_PointSize = uGrainSize * (1.0 + uGlow*1.7) * uPointScale / max(0.35, clip.w);
+  vH = abs(u);
+}`,
+`precision highp float;
+uniform float uGlow;
+varying float vH;
+void main(){
+  vec2 d = gl_PointCoord - 0.5;
+  float r2 = dot(d,d);
+  if (r2 > 0.25) discard;
+  float a = smoothstep(0.25, 0.02, r2);
+  vec3 warm = vec3(1.0, 0.73, 0.36);
+  vec3 cool = vec3(0.62, 0.92, 1.0);
+  vec3 c = mix(warm, cool, smoothstep(0.05, 0.62, vH));
+  gl_FragColor = vec4(c, a * (1.0 - uGlow*0.92));
+}`);
+
+/* ------------------------------------------------------------------ buffers */
+function makeBuffer(data, usage) {
+  const b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, data, usage || gl.STATIC_DRAW);
+  return b;
+}
+
+// fullscreen triangle
+const bgBuf = makeBuffer(new Float32Array([-1,-1, 3,-1, -1,3]));
+
+// underglow quad
+const ugBuf = makeBuffer(new Float32Array([-1.7,-1.7, 1.7,-1.7, -1.7,1.7, 1.7,1.7]));
+
+// plate grid
+const SEG = 96;
+const gridVerts = new Float32Array((SEG + 1) * (SEG + 1) * 2);
+{
+  let k = 0;
+  for (let j = 0; j <= SEG; j++) for (let i = 0; i <= SEG; i++) {
+    gridVerts[k++] = -1 + 2 * i / SEG;
+    gridVerts[k++] = -1 + 2 * j / SEG;
+  }
+}
+const gridIdx = new Uint16Array(SEG * SEG * 6);
+{
+  let k = 0;
+  for (let j = 0; j < SEG; j++) for (let i = 0; i < SEG; i++) {
+    const a = j * (SEG + 1) + i, b = a + 1, c = a + SEG + 1, d = c + 1;
+    gridIdx[k++] = a; gridIdx[k++] = b; gridIdx[k++] = c;
+    gridIdx[k++] = b; gridIdx[k++] = d; gridIdx[k++] = c;
+  }
+}
+const plateBuf = makeBuffer(gridVerts);
+const plateIdx = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plateIdx);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, gridIdx, gl.STATIC_DRAW);
+
+// sand positions (x, y, random) — updated every frame
+const particleData = new Float32Array(45000 * 3);
+const particleBuf = makeBuffer(particleData, gl.DYNAMIC_DRAW);
+function syncParticleBuffer(full) {
+  for (let i = 0; i < N; i++) {
+    particleData[i*3] = px[i];
+    particleData[i*3+1] = py[i];
+    particleData[i*3+2] = seed[i];
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, particleBuf);
+  if (full) gl.bufferData(gl.ARRAY_BUFFER, particleData.subarray(0, N*3), gl.DYNAMIC_DRAW);
+  else gl.bufferSubData(gl.ARRAY_BUFFER, 0, particleData.subarray(0, N*3));
+}
+
+/* ------------------------------------------------------------ field texture */
+const FT = 384;
+const fieldData = new Uint8Array(FT * FT * 4);
+const fieldTex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, fieldTex);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FT, FT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+let fieldDirty = true;
+function buildFieldTexture() {
+  const d = fieldData;
+  for (let j = 0; j < FT; j++) {
+    const y = -1 + 2 * (j + .5) / FT;
+    for (let i = 0; i < FT; i++) {
+      const x = -1 + 2 * (i + .5) / FT;
+      sampleField(x, y);
+      const k = (j * FT + i) * 4;
+      const b = Math.round((clamp(fieldU, -1, 1) * .5 + .5) * 255);
+      d[k] = b; d[k+1] = b; d[k+2] = b; d[k+3] = 255;
+    }
+  }
+  gl.bindTexture(gl.TEXTURE_2D, fieldTex);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, FT, FT, gl.RGBA, gl.UNSIGNED_BYTE, fieldData);
+}
+
+/* -------------------------------------------------------------------- camera */
+const cam = { yaw: -1.95, pitch: .66, dist: 3.15, fov: 45 * Math.PI / 180, eye: [0,0,0], view: new Float32Array(16), proj: new Float32Array(16), mvp: new Float32Array(16) };
+
+function perspective(fovy, aspect, near, far) {
+  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0]);
+}
+function lookAt(eye, center, up) {
+  let z0 = eye[0]-center[0], z1 = eye[1]-center[1], z2 = eye[2]-center[2];
+  let l = 1/Math.hypot(z0,z1,z2); z0*=l; z1*=l; z2*=l;
+  let x0 = up[1]*z2 - up[2]*z1, x1 = up[2]*z0 - up[0]*z2, x2 = up[0]*z1 - up[1]*z0;
+  l = Math.hypot(x0,x1,x2); if (l < 1e-6) { x0 = 1; x1 = 0; x2 = 0; l = 1; }
+  l = 1/l; x0*=l; x1*=l; x2*=l;
+  const y0 = z1*x2 - z2*x1, y1 = z2*x0 - z0*x2, y2 = z0*x1 - z1*x0;
+  return new Float32Array([
+    x0, y0, z0, 0,
+    x1, y1, z1, 0,
+    x2, y2, z2, 0,
+    -(x0*eye[0]+x1*eye[1]+x2*eye[2]), -(y0*eye[0]+y1*eye[1]+y2*eye[2]), -(z0*eye[0]+z1*eye[1]+z2*eye[2]), 1
+  ]);
+}
+function mul(a, b) {
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+  }
+  return o;
+}
+function updateCamera(aspect) {
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const e = [cam.dist*cp*Math.cos(cam.yaw), cam.dist*cp*Math.sin(cam.yaw), cam.dist*sp + .02];
+  cam.eye = e;
+  const view = lookAt(e, [0,0,.02], [0,0,1]);
+  const proj = perspective(cam.fov, aspect, .1, 60);
+  cam.view = view; cam.proj = proj;
+  cam.mvp = mul(proj, view);
+}
+
+/* --------------------------------------------------------------------- reset */
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(canvas.clientWidth * dpr));
+  canvas.height = Math.max(1, Math.round(canvas.clientHeight * dpr));
+}
+addEventListener('resize', resize);
+
+/* ---------------------------------------------------------------- interaction */
+let dragging = false, lastX = 0, lastY = 0;
+canvas.addEventListener('pointerdown', e => {
+  dragging = true; lastX = e.clientX; lastY = e.clientY;
+  canvas.setPointerCapture?.(e.pointerId);
+});
+canvas.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  cam.yaw -= (e.clientX - lastX) * .0075;
+  cam.pitch = clamp(cam.pitch + (e.clientY - lastY) * .0055, .06, 1.44);
+  lastX = e.clientX; lastY = e.clientY;
+});
+canvas.addEventListener('pointerup', () => dragging = false);
+canvas.addEventListener('pointercancel', () => dragging = false);
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  cam.dist = clamp(cam.dist * Math.exp(e.deltaY * .0011), 1.85, 6.2);
+}, { passive: false });
+canvas.addEventListener('dblclick', () => { cam.yaw = -1.95; cam.pitch = .66; cam.dist = 3.15; });
+
+/* --------------------------------------------------------------------- audio */
+const A = {
+  ctx: null, analyser: null, bins: null, master: null, osc: null, gain: null,
+  el: null, src: null, stream: null, active: false, kind: 'silent',
+  smooth: 440, stable: 440, conf: 0, lastMode: 0, beatAt: 0
+};
+
+async function ensureAudio() {
+  if (!A.ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('Audio is not supported in this browser');
+    A.ctx = new AC();
+    A.analyser = A.ctx.createAnalyser();
+    A.analyser.fftSize = 2048;
+    A.analyser.smoothingTimeConstant = .78;
+    A.bins = new Uint8Array(A.analyser.frequencyBinCount);
+    A.master = A.ctx.createGain();
+    A.master.gain.value = .5;
+    A.master.connect(A.ctx.destination);
+  }
+  if (A.ctx.state === 'suspended') await A.ctx.resume();
+}
+function disconnectAudio() {
+  try { A.osc?.stop(); } catch (e) {}
+  if (A.osc) { try { A.osc.disconnect(); } catch (e) {} A.osc = null; }
+  if (A.gain) { try { A.gain.disconnect(); } catch (e) {} A.gain = null; }
+  if (A.el) { A.el.pause(); A.el = null; }
+  if (A.stream) { A.stream.getTracks().forEach(t => t.stop()); A.stream = null; }
+  if (A.src) { try { A.src.disconnect(); } catch (e) {} A.src = null; }
+  A.active = false;
+}
+
+async function startTone() {
+  await ensureAudio();
+  disconnectAudio();
+  const osc = A.ctx.createOscillator(), g = A.ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = S.frequency;
+  g.gain.value = .12;
+  osc.connect(g); g.connect(A.analyser); g.connect(A.master);
+  osc.start();
+  A.osc = osc; A.gain = g; A.src = g;
+  A.active = true; A.kind = 'tone';
+}
+async function startMic() {
+  await ensureAudio();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+  disconnectAudio();
+  const src = A.ctx.createMediaStreamSource(stream);
+  src.connect(A.analyser);
+  A.src = src; A.stream = stream; A.active = true; A.kind = 'mic';
+}
+async function startFile(file) {
+  await ensureAudio();
+  disconnectAudio();
+  const el = new Audio(URL.createObjectURL(file));
+  el.loop = true; el.crossOrigin = 'anonymous';
+  const src = A.ctx.createMediaElementSource(el);
+  src.connect(A.analyser); src.connect(A.master);
+  A.el = el; A.src = src; A.active = true; A.kind = 'file';
+  await el.play();
+}
+async function startTab() {
+  const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+  stream.getVideoTracks().forEach(t => t.stop());
+  if (!stream.getAudioTracks().length) throw new Error('No audio was shared. Pick a tab/window with audio and enable share audio.');
+  await ensureAudio();
+  disconnectAudio();
+  const src = A.ctx.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));
+  src.connect(A.analyser);
+  A.src = src; A.stream = stream; A.active = true; A.kind = 'tab';
+}
+function stopAudio() {
+  disconnectAudio();
+  A.kind = 'silent';
+  S.source = 'silent';
+}
+
+function analyse() {
+  if (!A.active) return;
+  A.analyser.getByteFrequencyData(A.bins);
+  let sum = 0, bass = 0;
+  for (let i = 2; i < A.bins.length; i++) {
+    sum += A.bins[i];
+    if (i < 12) bass += A.bins[i];
+  }
+  const amp = clamp(sum / (A.bins.length * 95), 0, 1);
+  if (A.kind !== 'tone') S.energy += (clamp(.06 + amp * 1.15, 0, 1) - S.energy) * .16;
+  bass /= (10 * 255);
+  const now = performance.now();
+  if (bass > .5 && now - A.beatAt > 240) { S.pulse = 1; A.beatAt = now; }
+
+  if (A.kind === 'tone') return;
+  let peak = 2, pv = 0;
+  for (let i = 2; i < Math.min(160, A.bins.length); i++) {
+    if (A.bins[i] > pv) { pv = A.bins[i]; peak = i; }
+  }
+  let floor = 0;
+  for (let i = 2; i < Math.min(160, A.bins.length); i++) floor += A.bins[i];
+  floor /= Math.max(1, Math.min(160, A.bins.length) - 2);
+  const conf = clamp((pv - floor * 1.6) / 120, 0, 1);
+  A.conf = conf;
+  if (conf > .15) {
+    const hz = peak * A.ctx.sampleRate / A.analyser.fftSize;
+    if (hz > 45 && hz < 1800) {
+      A.smooth += (hz - A.smooth) * .12;
+      if (Math.abs(A.smooth - A.stable) > 3) A.stable += (A.smooth - A.stable) * .14;
+      S.frequency = clamp(A.stable, 50, 1600);
+      if (now - A.lastMode > 520) {
+        const mo = modeForHz(S.frequency);
+        if (mo.m !== S.m || mo.n !== S.n) {
+          S.m = mo.m; S.n = mo.n;
+          tableM = tableN = -1;
+          buildCircleTable();
+          fieldDirty = true;
+          syncSliders();
+        }
+        A.lastMode = now;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- UI wiring */
+const ui = {
+  shape: $('shape'), m: $('m'), n: $('n'), hz: $('hz'), energy: $('energy'), grains: $('grains'),
+  mVal: $('mVal'), nVal: $('nVal'), hzVal: $('hzVal'), enVal: $('enVal'), gVal: $('gVal'),
+  hzBig: $('hzBig'), modeOut: $('modeOut'), affOut: $('affOut'), affBar: $('affBar'),
+  srcLabel: $('srcLabel'), plateSize: $('plateSize'),
+  play: $('btnPlay'), reset: $('btnReset'), orbit: $('btnOrbit'), full: $('btnFull'),
+  file: $('file'), toast: $('toast'), panel: $('panel')
+};
+
+function toast(msg) {
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => ui.toast.classList.remove('show'), 1900);
+}
+
+function syncSliders() {
+  ui.m.value = S.m; ui.n.value = S.n;
+  ui.mVal.textContent = S.m; ui.nVal.textContent = S.n;
+  ui.hz.value = S.frequency.toFixed(1);
+  ui.hzVal.textContent = Math.round(S.frequency) + ' Hz';
+  ui.m.min = S.shape === 'circle' ? 0 : 1;
+  ui.energy.value = Math.round(S.energy * 100);
+  ui.enVal.textContent = Math.round(S.energy * 100) + '%';
+  ui.srcLabel.textContent = S.source;
+  ui.plateSize.textContent = S.shape;
+  const mLabel = (S.shape === 'circle' && S.m === 0 ? 'radial ' : '') + S.m + ' × ' + S.n;
+  ui.modeOut.textContent = mLabel;
+  ui.hzBig.textContent = Math.round(S.frequency);
+  const r = resonance();
+  ui.affOut.textContent = Math.round(r * 100) + '%';
+  ui.affBar.style.width = Math.max(2, Math.round(r * 100)) + '%';
+}
+
+function snapFrequency() {
+  S.frequency = clamp(modeFreq(S.m, S.n, S.shape), 50, 1600);
+  if (A.osc) A.osc.frequency.setTargetAtTime(S.frequency, A.ctx.currentTime, .02);
+  if (A.ctx && A.ctx.state === 'suspended') A.ctx.resume();
+  fieldDirty = true;
+  syncSliders();
+}
+
+function applyFrequency(hz) {
+  S.frequency = clamp(hz, 50, 1600);
+  const mo = modeForHz(S.frequency);
+  if (mo.m !== S.m || mo.n !== S.n) {
+    S.m = mo.m; S.n = mo.n;
+    tableM = tableN = -1;
+    buildCircleTable();
+    fieldDirty = true;
+  }
+  if (A.osc) A.osc.frequency.setTargetAtTime(S.frequency, A.ctx.currentTime, .02);
+  syncSliders();
+}
+
+function setShape(shape) {
+  S.shape = shape;
+  if (shape === 'square' && S.m === 0) S.m = 1;
+  tableM = tableN = -1;
+  buildCircleTable();
+  S.energy = +ui.energy.value / 100;
+  S.phase = 0;
+  resetParticles();
+  syncParticleBuffer(true);
+  snapFrequency();
+}
+
+ui.shape.onchange = () => setShape(ui.shape.value);
+
+ui.m.oninput = () => { S.m = +ui.m.value; tableM = tableN = -1; buildCircleTable(); snapFrequency(); };
+ui.n.oninput = () => { S.n = +ui.n.value; tableM = tableN = -1; buildCircleTable(); snapFrequency(); };
+ui.hz.oninput = () => applyFrequency(+ui.hz.value);
+ui.energy.oninput = () => { S.energy = +ui.energy.value / 100; syncSliders(); };
+ui.grains.oninput = () => {
+  const n = +ui.grains.value;
+  allocate(n);
+  syncParticleBuffer(true);
+  ui.gVal.textContent = (n / 1000) + 'k';
+  syncSliders();
+};
+
+document.querySelectorAll('[data-src]').forEach(b => {
+  b.onclick = async () => {
+    const kind = b.dataset.src;
+    try {
+      if (kind === 'silent') { stopAudio(); }
+      else if (kind === 'tone') { await startTone(); S.source = 'tone'; }
+      else if (kind === 'mic') { await startMic(); S.source = 'mic'; }
+      else if (kind === 'file') { ui.file.click(); return; }
+      else if (kind === 'tab') { await startTab(); S.source = 'tab'; }
+      document.querySelectorAll('[data-src]').forEach(x => x.classList.toggle('on', x === b));
+      syncSliders();
+      if (kind !== 'silent') toast(kind === 'tone' ? 'Tone generator live' : 'Listening — play something');
+    } catch (err) {
+      stopAudio();
+      document.querySelectorAll('[data-src]').forEach(x => x.classList.toggle('on', x.dataset.src === 'silent'));
+      syncSliders();
+      toast(String(err.message || err));
+    }
+  };
+});
+
+ui.file.onchange = async () => {
+  if (!ui.file.files[0]) return;
+  try {
+    await startFile(ui.file.files[0]);
+    S.source = 'file';
+    document.querySelectorAll('[data-src]').forEach(x => x.classList.toggle('on', x.dataset.src === 'file'));
+    syncSliders();
+    toast('Playing ' + ui.file.files[0].name);
+  } catch (e) { toast('Could not play that file'); }
+};
+
+const PRESETS = {
+  lattice: { shape: 'square', m: 3, n: 2, energy: .62 },
+  crystal: { shape: 'square', m: 5, n: 3, energy: .7 },
+  bloom: { shape: 'circle', m: 5, n: 2, energy: .58 },
+  orbit: { shape: 'circle', m: 2, n: 4, energy: .54 }
+};
+document.querySelectorAll('[data-preset]').forEach(b => {
+  b.onclick = () => {
+    const p = PRESETS[b.dataset.preset];
+    S.shape = p.shape; S.m = p.m; S.n = p.n; S.energy = p.energy;
+    ui.shape.value = S.shape;
+    tableM = tableN = -1;
+    buildCircleTable();
+    S.phase = 0;
+    resetParticles();
+    syncParticleBuffer(true);
+    snapFrequency();
+    toast(b.textContent + ' preset');
+  };
+});
+
+ui.play.onclick = () => {
+  S.paused = !S.paused;
+  ui.play.textContent = S.paused ? 'Play' : 'Pause';
+  ui.play.classList.toggle('on', S.paused);
+};
+ui.reset.onclick = () => { resetParticles(); syncParticleBuffer(true); toast('Grains reset'); };
+ui.orbit.onclick = () => { S.autoOrbit = !S.autoOrbit; ui.orbit.classList.toggle('on', S.autoOrbit); };
+ui.full.onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.().catch(() => {});
+};
+
+addEventListener('keydown', e => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target?.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); ui.play.click(); }
+  else if (k === 'r') ui.reset.click();
+  else if (k === 'o') ui.orbit.click();
+  else if (k === 'h') ui.panel.classList.toggle('hidden');
+  else if (k === 'f') ui.full.click();
+});
+
+/* ------------------------------------------------------------- WebGL drawing */
+let pointScale = 1;
+function render(dt) {
+  const W = canvas.width, H = canvas.height;
+  gl.viewport(0, 0, W, H);
+  gl.clearColor(.008, .015, .026, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  if (S.autoOrbit && !dragging) cam.yaw += dt * .075;
+  const cssW = canvas.clientWidth || 1, cssH = canvas.clientHeight || 1;
+  const mobile = window.innerWidth <= 820;
+  let vx = 0, vy = 0, vw = W, vh = H;
+  if (mobile) {
+    const panelCSS = Math.min(.46 * cssH, 430), headCSS = 78;
+    const sceneCSS = Math.max(180, cssH - panelCSS - headCSS);
+    vh = Math.max(1, Math.round(sceneCSS / cssH * H));
+    vy = Math.round((panelCSS + 6) / cssH * H);
+    updateCamera(W / vh);
+  } else {
+    const inset = ui.panel.classList.contains('hidden') ? 0 : 296;
+    vw = Math.max(1, Math.round((cssW - inset) / cssW * W));
+    updateCamera(vw / H);
+  }
+  pointScale = H / (2 * Math.tan(cam.fov / 2));
+
+  const amp = .07 + S.energy * .07 + S.pulse * .03;
+
+  /* background */
+  gl.disable(gl.DEPTH_TEST);
+  gl.disable(gl.BLEND);
+  gl.depthMask(false);
+  gl.useProgram(bg.p);
+  gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
+  gl.enableVertexAttribArray(bg.a.aClip);
+  gl.vertexAttribPointer(bg.a.aClip, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform2f(bg.u.uRes, W, H);
+  gl.uniform1f(bg.u.uEnergy, S.energy);
+  gl.uniform1f(bg.u.uPulse, S.pulse);
+  gl.uniform1f(bg.u.uTime, S.simTime);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  /* underglow */
+  gl.viewport(vx, vy, vw, vh);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  gl.useProgram(ug.p);
+  gl.bindBuffer(gl.ARRAY_BUFFER, ugBuf);
+  gl.enableVertexAttribArray(ug.a.aPos);
+  gl.vertexAttribPointer(ug.a.aPos, 2, gl.FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(ug.u.uMVP, false, cam.mvp);
+  gl.uniform1f(ug.u.uEnergy, S.energy);
+  gl.uniform1f(ug.u.uPulse, S.pulse);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  /* plate */
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
+  gl.disable(gl.BLEND);
+  gl.depthMask(true);
+  gl.useProgram(plate.p);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, fieldTex);
+  gl.uniform1i(plate.u.uField, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, plateBuf);
+  gl.enableVertexAttribArray(plate.a.aPos);
+  gl.vertexAttribPointer(plate.a.aPos, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plateIdx);
+  gl.uniformMatrix4fv(plate.u.uMVP, false, cam.mvp);
+  gl.uniform1f(plate.u.uAmp, amp);
+  gl.uniform1f(plate.u.uPhase, S.phase);
+  gl.uniform1f(plate.u.uShape, S.shape === 'circle' ? 1 : 0);
+  gl.uniform1f(plate.u.uHole, holeRadius());
+  gl.uniform1f(plate.u.uEnergy, S.energy);
+  gl.uniform1f(plate.u.uPulse, S.pulse);
+  gl.uniform3fv(plate.u.uCam, cam.eye);
+  gl.drawElements(gl.TRIANGLES, gridIdx.length, gl.UNSIGNED_SHORT, 0);
+
+  /* sand */
+  gl.enable(gl.BLEND);
+  gl.depthMask(false);
+  gl.useProgram(sand.p);
+  gl.uniform1i(sand.u.uField, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, particleBuf);
+  gl.enableVertexAttribArray(sand.a.aPos);
+  gl.vertexAttribPointer(sand.a.aPos, 3, gl.FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(sand.u.uMVP, false, cam.mvp);
+  gl.uniform1f(sand.u.uAmp, amp);
+  gl.uniform1f(sand.u.uPhase, S.phase);
+  gl.uniform1f(sand.u.uPointScale, pointScale);
+  gl.uniform1f(sand.u.uGrainSize, .0078);
+
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.uniform1f(sand.u.uGlow, 0);
+  gl.drawArrays(gl.POINTS, 0, N);
+
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  gl.uniform1f(sand.u.uGlow, 1);
+  gl.drawArrays(gl.POINTS, 0, N);
+
+  gl.depthMask(true);
+  gl.disable(gl.BLEND);
+  gl.disable(gl.DEPTH_TEST);
+}
+
+/* ------------------------------------------------------------------- loop */
+let last = performance.now(), acc = 0, hudTick = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000);
+  last = now;
+
+  if (!S.paused) {
+    S.pulse *= Math.pow(.0025, dt);
+    if (A.active) analyse();
+    acc += dt;
+    let steps = 0;
+    while (acc >= P.step && steps < P.maxSteps) {
+      S.phase = (S.phase + TAU * (1.25 + S.frequency / 280) * P.step) % TAU;
+      simulate(P.step);
+      acc -= P.step; steps++;
+    }
+    if (steps === P.maxSteps) acc = 0;
+  }
+
+  if (fieldDirty) { buildFieldTexture(); fieldDirty = false; }
+  syncParticleBuffer(false);
+  render(dt);
+
+  hudTick += dt;
+  if (hudTick > .12) {
+    hudTick = 0;
+    ui.hzBig.textContent = Math.round(S.frequency);
+    const r = resonance();
+    ui.affOut.textContent = Math.round(r * 100) + '%';
+    ui.affBar.style.width = Math.max(2, Math.round(r * 100)) + '%';
+    const mLabel = (S.shape === 'circle' && S.m === 0 ? 'radial ' : '') + S.m + ' × ' + S.n;
+    ui.modeOut.textContent = mLabel;
+    ui.hzVal.textContent = Math.round(S.frequency) + ' Hz';
+  }
+
+  requestAnimationFrame(frame);
+}
+
+/* ------------------------------------------------------------------- init */
+resize();
+allocate(N);
+ui.gVal.textContent = (N / 1000) + 'k';
+S.frequency = clamp(modeFreq(S.m, S.n, S.shape), 50, 1600);
+buildCircleTable();
+fieldDirty = true;
+syncSliders();
+requestAnimationFrame(frame);
+setTimeout(() => toast('Drag to orbit · play a tone or load audio'), 900);
+
 })();
-</script></body></html>
+</script>
+</body>
+</html>
